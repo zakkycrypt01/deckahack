@@ -1,0 +1,50 @@
+{
+  "canisters": {
+    "deckahack_backend": {
+      "build": "npx azle deckahack_backend",
+      "candid": "src/deckahack_backend/deckahack_backend.did",
+      "gzip": true,
+      "main": "src/deckahack_backend/src/index.ts",
+      "tech_stack": {
+        "cdk": {
+          "azle": {}
+        },
+        "language": {
+          "javascript": {},
+          "typescript": {}
+        }
+      },
+      "type": "custom",
+      "wasm": ".azle/deckahack_backend/deckahack_backend.wasm"
+    },
+    "deckahack_frontend": {
+      "dependencies": [
+        "deckahack_backend"
+      ],
+      "source": [
+        "src/deckahack_frontend/dist"
+      ],
+      "type": "assets",
+      "workspace": "deckahack_frontend"
+    },
+    "internet_identity": {
+      "candid": "https://github.com/dfinity/internet-identity/releases/latest/download/internet_identity.did",
+      "frontend": {},
+      "remote": {
+        "id": {
+          "ic": "rdmx6-jaaaa-aaaaa-aaadq-cai"
+        }
+      },
+      "type": "custom",
+      "wasm": "https://github.com/dfinity/internet-identity/releases/latest/download/internet_identity_dev.wasm.gz"
+    }
+  },
+  "defaults": {
+    "build": {
+      "args": "",
+      "packtool": ""
+    }
+  },
+  "output_env_file": ".env",
+  "version": 1
+}
