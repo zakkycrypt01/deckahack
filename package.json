@@ -15,5 +15,8 @@
   "workspaces": [
     "src/deckahack_backend",
     "src/deckahack_frontend"
-  ]
+  ],
+  "dependencies": {
+    "uuidv4": "^6.2.13"
+  }
 }
