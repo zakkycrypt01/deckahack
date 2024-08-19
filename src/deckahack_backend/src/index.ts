@@ -30,6 +30,29 @@ import {
   } from "azle/canisters/ledger";
 import { uuid as v4 } from 'uuidv4';
 
+//create user strct
+const userProfile = Record({
+    id: text,
+    owner: Principal,
+    name: text,
+    email: text,
+    joinedAt: text,
+    merchantStatus: text,
+    userStatus: text
+});
+
+//merchant status Enum
+const merchantStatus = Variant({
+    active: text,
+    suspended: text,
+});
+
+// user status Enum
+const userStatus = Variant({
+    verified: text,
+    banned: text
+});
+
 
 //order struct
 const Order = Record({
@@ -52,6 +75,12 @@ const Status = Variant({
     cancelled: text,
 });
 
+// user profile payload
+const userProfilePayload = Record({
+    name:text,
+    email:text
+});
+
 // order payload
 const OrderPayload = Record({
     buyer: Principal,
@@ -62,7 +91,8 @@ const OrderPayload = Record({
 });
 
 // storage
-const storage = StableBTreeMap(0, text, Order);
+const storage = StableBTreeMap(0, text, userProfile);
+const storage = StableBTreeMap()
 
 // time out
 const TIMEOUT_PERIOD = 300000000000n;
@@ -72,26 +102,7 @@ const TIMEOUT_PERIOD = 300000000000n;
 
 
 export default Canister({
-    // create order
-    createOrder: update([OrderPayload], Result(Order,Status),(payload) => {
-        if (
-            !payload.buyer ||
-            !payload.seller ||
-            !payload.status ||
-            !payload.dispute ||
-            !payload.arbitrator
-        ){
-            return Err ({InvalidPayload: "Missing required fields"});
-        }
-        const id = v4();
-        const order = {
-            ...payload,
-            orderId : id,
-            
-        }
-        return Ok(order);
-    }),
-    
-})
+
+});
 
 
