@@ -91,8 +91,8 @@ const OrderPayload = Record({
 });
 
 // storage
-const storage = StableBTreeMap(0, text, userProfile);
-const storage = StableBTreeMap()
+const userProfileStorage = StableBTreeMap(0, text, userProfile);
+const orderStorage = StableBTreeMap(1,text, Order)
 
 // time out
 const TIMEOUT_PERIOD = 300000000000n;
@@ -102,7 +102,7 @@ const TIMEOUT_PERIOD = 300000000000n;
 
 
 export default Canister({
-
+    
 });
 
 
