@@ -1,1 +1,1 @@
-{"canister_methods":{"queries":[{"name":"greet","composite":false}],"updates":[],"callbacks":{}}}
+{"canister_methods":{"queries":[{"name":"getUserProfileById","composite":false},{"name":"getUserProfileByOwner","composite":false}],"updates":[{"name":"createUserProfile"},{"name":"createAds"}],"callbacks":{}}}

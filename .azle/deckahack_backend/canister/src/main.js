@@ -98294,7 +98294,7 @@ var DecodeVisitor = class extends idl_exports.Visitor {
         return visitVariant(this, fields, data);
     }
 };
-// node_modules/uuid/dist/esm-browser/rng.js
+// node_modules/azle/node_modules/uuid/dist/esm-browser/rng.js
 var getRandomValues;
 var rnds8 = new Uint8Array(16);
 function rng() {
@@ -98306,7 +98306,7 @@ function rng() {
     }
     return getRandomValues(rnds8);
 }
-// node_modules/uuid/dist/esm-browser/stringify.js
+// node_modules/azle/node_modules/uuid/dist/esm-browser/stringify.js
 var byteToHex = [];
 for(let i = 0; i < 256; ++i){
     byteToHex.push((i + 256).toString(16).slice(1));
@@ -98314,12 +98314,12 @@ for(let i = 0; i < 256; ++i){
 function unsafeStringify(arr, offset = 0) {
     return byteToHex[arr[offset + 0]] + byteToHex[arr[offset + 1]] + byteToHex[arr[offset + 2]] + byteToHex[arr[offset + 3]] + "-" + byteToHex[arr[offset + 4]] + byteToHex[arr[offset + 5]] + "-" + byteToHex[arr[offset + 6]] + byteToHex[arr[offset + 7]] + "-" + byteToHex[arr[offset + 8]] + byteToHex[arr[offset + 9]] + "-" + byteToHex[arr[offset + 10]] + byteToHex[arr[offset + 11]] + byteToHex[arr[offset + 12]] + byteToHex[arr[offset + 13]] + byteToHex[arr[offset + 14]] + byteToHex[arr[offset + 15]];
 }
-// node_modules/uuid/dist/esm-browser/native.js
+// node_modules/azle/node_modules/uuid/dist/esm-browser/native.js
 var randomUUID = typeof crypto !== "undefined" && crypto.randomUUID && crypto.randomUUID.bind(crypto);
 var native_default = {
     randomUUID
 };
-// node_modules/uuid/dist/esm-browser/v4.js
+// node_modules/azle/node_modules/uuid/dist/esm-browser/v4.js
 function v4(options, buf, offset) {
     if (native_default.randomUUID && !buf && !options) {
         return native_default.randomUUID();
@@ -98363,6 +98363,21 @@ function Some(value) {
 var None = {
     None: null
 };
+// node_modules/azle/src/lib/candid/types/constructed/record.ts
+function Record2(obj) {
+    return _extends({}, obj, {
+        tsType: {},
+        toBytes (data) {
+            return encode3(this, data);
+        },
+        fromBytes (bytes2) {
+            return decode3(this, bytes2);
+        },
+        getIdl (parents) {
+            return idl_exports.Record(toIdlMap(obj, parents));
+        }
+    });
+}
 // node_modules/azle/src/lib/candid/types/primitive/nats/nat.ts
 var AzleNat = (_class1 = class {
     static toBytes(data) {
@@ -98647,19 +98662,29 @@ function Result(ok, err) {
     return new AzleResult(ok, err);
 }
 ((Result2)=>{
-    function Ok(value) {
+    function Ok2(value) {
         return {
             Ok: value
         };
     }
-    Result2.Ok = Ok;
-    function Err(value) {
+    Result2.Ok = Ok2;
+    function Err2(value) {
         return {
             Err: value
         };
     }
-    Result2.Err = Err;
+    Result2.Err = Err2;
 })(Result || (Result = {}));
+function Ok(value) {
+    return {
+        Ok: value
+    };
+}
+function Err(value) {
+    return {
+        Err: value
+    };
+}
 // node_modules/azle/src/lib/candid/serde/visitors/visit/variant/azle_variant.ts
 function visitAzleVariant(visitor, fields, data) {
     const candidFields = fields.reduce((acc, [memberName, memberIdl])=>{
@@ -99509,6 +99534,168 @@ function query(paramCandidTypes, returnCandidType, callback, methodArgs) {
         guard: methodArgs == null ? void 0 : methodArgs.guard
     };
 }
+// node_modules/azle/src/lib/canister_methods/methods/update.ts
+function update(paramCandidTypes, returnCandidType, callback, methodArgs) {
+    const finalCallback = callback === void 0 ? void 0 : (...args)=>{
+        var _methodArgs_manual;
+        executeMethod("update", args, callback, paramCandidTypes, returnCandidType, (_methodArgs_manual = methodArgs == null ? void 0 : methodArgs.manual) != null ? _methodArgs_manual : false);
+    };
+    return {
+        mode: "update",
+        callback: finalCallback,
+        paramCandidTypes,
+        returnCandidType,
+        async: callback === void 0 ? false : isAsync(callback),
+        guard: methodArgs == null ? void 0 : methodArgs.guard
+    };
+}
+// node_modules/azle/src/lib/stable_structures/stable_b_tree_map.ts
+function StableBTreeMap(memoryIdNumber, keySerializable = stableJson, valueSerializable = stableJson) {
+    const memoryId = memoryIdNumber.toString();
+    if (globalThis._azleIc !== void 0) {
+        globalThis._azleIc.stableBTreeMapInit(memoryId);
+    }
+    isSerializable(keySerializable);
+    isSerializable(valueSerializable);
+    return {
+        /**
+     * Checks if the given key exists in the map.
+     * @param key the key to check.
+     * @returns `true` if the key exists in the map, `false` otherwise.
+     */ containsKey (key) {
+            if (globalThis._azleIc === void 0) {
+                return void 0;
+            }
+            const encodedKey = keySerializable.toBytes(key).buffer;
+            return globalThis._azleIc.stableBTreeMapContainsKey(memoryId, encodedKey);
+        },
+        /**
+     * Retrieves the value stored at the provided key.
+     * @param key the location from which to retrieve.
+     * @returns the value associated with the given key, if it exists.
+     */ get (key) {
+            if (globalThis._azleIc === void 0) {
+                return void 0;
+            }
+            const encodedKey = keySerializable.toBytes(key).buffer;
+            const encodedResult = globalThis._azleIc.stableBTreeMapGet(memoryId, encodedKey);
+            if (encodedResult === void 0) {
+                return None;
+            } else {
+                return Some(valueSerializable.fromBytes(new Uint8Array(encodedResult)));
+            }
+        },
+        /**
+     * Inserts a value into the map at the provided key.
+     * @param key the location at which to insert.
+     * @param value the value to insert.
+     * @returns the previous value of the key, if present.
+     */ insert (key, value) {
+            if (globalThis._azleIc === void 0) {
+                return void 0;
+            }
+            const encodedKey = keySerializable.toBytes(key).buffer;
+            const encodedValue = valueSerializable.toBytes(value).buffer;
+            const encodedResult = globalThis._azleIc.stableBTreeMapInsert(memoryId, encodedKey, encodedValue);
+            if (encodedResult === void 0) {
+                return None;
+            } else {
+                return Some(valueSerializable.fromBytes(new Uint8Array(encodedResult)));
+            }
+        },
+        /**
+     * Checks if the map is empty.
+     * @returns `true` if the map contains no elements, `false` otherwise.
+     */ isEmpty () {
+            if (globalThis._azleIc === void 0) {
+                return void 0;
+            }
+            return globalThis._azleIc.stableBTreeMapIsEmpty(memoryId);
+        },
+        /**
+     * Retrieves the items in the map in sorted order.
+     * @param startIndex the starting index to begin retrieval
+     * @param length the number of items to retrieve
+     * @returns tuples representing key/value pairs.
+     */ items (startIndex, length) {
+            if (globalThis._azleIc === void 0) {
+                return void 0;
+            }
+            var _startIndex_toString, _length_toString;
+            const encodedItems = globalThis._azleIc.stableBTreeMapItems(memoryId, (_startIndex_toString = startIndex == null ? void 0 : startIndex.toString()) != null ? _startIndex_toString : "0", (_length_toString = length == null ? void 0 : length.toString()) != null ? _length_toString : "NOT_SET");
+            return encodedItems.map(([encodedKey, encodedValue])=>{
+                return [
+                    keySerializable.fromBytes(new Uint8Array(encodedKey)),
+                    valueSerializable.fromBytes(new Uint8Array(encodedValue))
+                ];
+            });
+        },
+        /**
+     * The keys for each element in the map in sorted order.
+     * @param startIndex the starting index to begin retrieval
+     * @param length the number of keys to retrieve
+     * @returns they keys in the map.
+     */ keys (startIndex, length) {
+            if (globalThis._azleIc === void 0) {
+                return void 0;
+            }
+            var _startIndex_toString, _length_toString;
+            const encodedKeys = globalThis._azleIc.stableBTreeMapKeys(memoryId, (_startIndex_toString = startIndex == null ? void 0 : startIndex.toString()) != null ? _startIndex_toString : "0", (_length_toString = length == null ? void 0 : length.toString()) != null ? _length_toString : "NOT_SET");
+            return encodedKeys.map((encodedKey)=>{
+                return keySerializable.fromBytes(new Uint8Array(encodedKey));
+            });
+        },
+        /**
+     * Checks to see how many elements are in the map.
+     * @returns the number of elements in the map.
+     */ len () {
+            if (globalThis._azleIc === void 0) {
+                return void 0;
+            }
+            const candidEncodedLen = globalThis._azleIc.stableBTreeMapLen(memoryId);
+            return decode3(nat64, candidEncodedLen);
+        },
+        /**
+     * Removes a key from the map.
+     * @param key the location from which to remove.
+     * @returns the previous value at the key if it exists, `null` otherwise.
+     */ remove (key) {
+            if (globalThis._azleIc === void 0) {
+                return void 0;
+            }
+            const encodedKey = keySerializable.toBytes(key).buffer;
+            const encodedValue = globalThis._azleIc.stableBTreeMapRemove(memoryId, encodedKey);
+            if (encodedValue === void 0) {
+                return None;
+            } else {
+                return Some(valueSerializable.fromBytes(new Uint8Array(encodedValue)));
+            }
+        },
+        /**
+     * The values in the map in sorted order.
+     * @param startIndex the starting index to begin retrieval
+     * @param length the number of values to retrieve
+     * @returns the values in the map.
+     */ values (startIndex, length) {
+            if (globalThis._azleIc === void 0) {
+                return void 0;
+            }
+            var _startIndex_toString, _length_toString;
+            const encodedValues = globalThis._azleIc.stableBTreeMapValues(memoryId, (_startIndex_toString = startIndex == null ? void 0 : startIndex.toString()) != null ? _startIndex_toString : "0", (_length_toString = length == null ? void 0 : length.toString()) != null ? _length_toString : "NOT_SET");
+            return encodedValues.map((encodedValue)=>{
+                return valueSerializable.fromBytes(new Uint8Array(encodedValue));
+            });
+        }
+    };
+}
+function isSerializable(obj) {
+    if (obj.toBytes === void 0) {
+        throw new Error(`value must have a toBytes method`);
+    }
+    if (obj.fromBytes === void 0) {
+        throw new Error(`value must have a fromBytes method`);
+    }
+}
 // node_modules/@dfinity/principal/lib/esm/utils/base32.js
 var alphabet2 = "abcdefghijklmnopqrstuvwxyz234567";
 var lookupTable2 = /* @__PURE__ */ Object.create(null);
@@ -99976,12 +100163,188 @@ var Principal4 = class _Principal {
         this._isPrincipal = true;
     }
 };
+// node_modules/uuid/dist/esm-browser/stringify.js
+var byteToHex2 = [];
+for(i = 0; i < 256; ++i){
+    byteToHex2.push((i + 256).toString(16).slice(1));
+}
+var i;
+function unsafeStringify2(arr, offset = 0) {
+    return (byteToHex2[arr[offset + 0]] + byteToHex2[arr[offset + 1]] + byteToHex2[arr[offset + 2]] + byteToHex2[arr[offset + 3]] + "-" + byteToHex2[arr[offset + 4]] + byteToHex2[arr[offset + 5]] + "-" + byteToHex2[arr[offset + 6]] + byteToHex2[arr[offset + 7]] + "-" + byteToHex2[arr[offset + 8]] + byteToHex2[arr[offset + 9]] + "-" + byteToHex2[arr[offset + 10]] + byteToHex2[arr[offset + 11]] + byteToHex2[arr[offset + 12]] + byteToHex2[arr[offset + 13]] + byteToHex2[arr[offset + 14]] + byteToHex2[arr[offset + 15]]).toLowerCase();
+}
+// node_modules/uuid/dist/esm-browser/rng.js
+var getRandomValues2;
+var rnds82 = new Uint8Array(16);
+function rng2() {
+    if (!getRandomValues2) {
+        getRandomValues2 = typeof crypto !== "undefined" && crypto.getRandomValues && crypto.getRandomValues.bind(crypto);
+        if (!getRandomValues2) {
+            throw new Error("crypto.getRandomValues() not supported. See https://github.com/uuidjs/uuid#getrandomvalues-not-supported");
+        }
+    }
+    return getRandomValues2(rnds82);
+}
+// node_modules/uuid/dist/esm-browser/native.js
+var randomUUID2 = typeof crypto !== "undefined" && crypto.randomUUID && crypto.randomUUID.bind(crypto);
+var native_default2 = {
+    randomUUID: randomUUID2
+};
+// node_modules/uuid/dist/esm-browser/v4.js
+function v42(options, buf, offset) {
+    if (native_default2.randomUUID && !buf && !options) {
+        return native_default2.randomUUID();
+    }
+    options = options || {};
+    var rnds = options.random || (options.rng || rng2)();
+    rnds[6] = rnds[6] & 15 | 64;
+    rnds[8] = rnds[8] & 63 | 128;
+    if (buf) {
+        offset = offset || 0;
+        for(var i = 0; i < 16; ++i){
+            buf[offset + i] = rnds[i];
+        }
+        return buf;
+    }
+    return unsafeStringify2(rnds);
+}
+var v4_default2 = v42;
 // src/deckahack_backend/src/index.ts
+var userProfile = Record2({
+    id: text,
+    owner: Principal3,
+    name: text,
+    email: text,
+    joinedAt: text,
+    merchantStatus: text,
+    userStatus: text
+});
+var merchantStatus = Variant2({
+    active: text,
+    inactive: text,
+    suspended: text
+});
+var userStatus = Variant2({
+    verified: text,
+    banned: text
+});
+var merchantAds = Record2({
+    id: text,
+    tokenType: Principal3,
+    TokenAmount: nat64,
+    rate: nat64,
+    owner: Principal3,
+    status: text,
+    createdAt: text,
+    updatedAt: text
+});
+var adsStatus = Variant2({
+    active: text,
+    inactive: text
+});
+var AdsPayload = Record2({
+    tokenType: Principal3,
+    TokenAmount: nat64,
+    rate: nat64,
+    status: text
+});
+var Order = Record2({
+    id: text,
+    buyer: Principal3,
+    status: text,
+    seller: Principal3,
+    dispute: text,
+    arbitrator: Principal3
+});
+var Status = Variant2({
+    Initated: text,
+    Acknowledged: text,
+    Awaiting_payment: text,
+    Awaiting_release: text,
+    Completed: text,
+    Disputed: text,
+    cancelled: text
+});
+var userProfilePayload = Record2({
+    name: text,
+    email: text
+});
+var OrderPayload = Record2({
+    buyer: Principal3,
+    seller: Principal3,
+    status: text,
+    dispute: text,
+    arbitrator: Principal3
+});
+var userProfileStorage = StableBTreeMap(0, text, userProfile);
+var orderStorage = StableBTreeMap(1, text, Order);
+var merchantAdsStorage = StableBTreeMap(2, text, merchantAds);
 var src_default = Canister({
-    greet: query([
+    // create user profile
+    createUserProfile: update([
+        userProfilePayload
+    ], Result(userProfile, text), (payload)=>{
+        try {
+            const userId = v4_default2();
+            const user = _extends({}, payload, {
+                id: userId,
+                owner: ic.caller(),
+                merchantStatus: "inactive",
+                userStatus: "verified",
+                joinedAt: /* @__PURE__ */ new Date().toISOString()
+            });
+            userProfileStorage.insert(userId, user);
+            return Ok(user);
+        } catch (error) {
+            return Err("Failed to create user profile.");
+        }
+    }),
+    // get user profile by id
+    getUserProfileById: query([
         text
-    ], text, (name)=>{
-        return `Hello, ${name}!`;
+    ], Result(userProfile, text), (userId)=>{
+        const userProfileOpt = userProfileStorage.get(userId);
+        if ("None" in userProfileOpt) {
+            return Err(`User profile with id ${userId} not found.`);
+        }
+        return Ok(userProfileOpt.Some);
+    }),
+    //function to get user profile by owner principal using filter
+    getUserProfileByOwner: query([], Result(userProfile, text), ()=>{
+        const userProfiles = userProfileStorage.values().filter((user)=>{
+            return user.owner.toText() === ic.caller().toText();
+        });
+        if (userProfiles.length === 0) {
+            return Err(`User profile for owner = ${ic.caller().toText()} not found.`);
+        }
+        return Ok(userProfiles[0]);
+    }),
+    //create merchant ads if merchant status is active
+    createAds: update([
+        AdsPayload
+    ], Result(merchantAds, text), (payload)=>{
+        try {
+            const adsId = v4_default2();
+            const userOpt = userProfileStorage.get(ic.caller().toText());
+            if ("None" in userOpt) {
+                return Err(`User profile for owner = ${ic.caller().toText()} not found.`);
+            }
+            const user = userOpt.Some;
+            if (user.merchantStatus === "active") {
+                const ads = _extends({}, payload, {
+                    id: adsId,
+                    owner: ic.caller(),
+                    status: "active",
+                    createdAt: /* @__PURE__ */ new Date().toISOString(),
+                    updatedAt: /* @__PURE__ */ new Date().toISOString()
+                });
+                merchantAdsStorage.insert(adsId, ads);
+                return Ok(ads);
+            } else {
+                return Err("User is not an active merchant.");
+            }
+        } catch (error) {
+            return Err("Failed to create ad.");
+        }
     })
 });
 // <stdin>

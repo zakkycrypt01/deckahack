@@ -1,3 +1,6 @@
 service: () -> {
-    greet: (text) -> (text) query;
+    createAds: (record {status:text; rate:nat64; TokenAmount:nat64; tokenType:principal}) -> (variant {Ok:record {id:text; status:text; owner:principal; createdAt:text; rate:nat64; TokenAmount:nat64; updatedAt:text; tokenType:principal}; Err:text});
+    createUserProfile: (record {name:text; email:text}) -> (variant {Ok:record {id:text; merchantStatus:text; owner:principal; name:text; joinedAt:text; email:text; userStatus:text}; Err:text});
+    getUserProfileById: (text) -> (variant {Ok:record {id:text; merchantStatus:text; owner:principal; name:text; joinedAt:text; email:text; userStatus:text}; Err:text}) query;
+    getUserProfileByOwner: () -> (variant {Ok:record {id:text; merchantStatus:text; owner:principal; name:text; joinedAt:text; email:text; userStatus:text}; Err:text}) query;
 }
