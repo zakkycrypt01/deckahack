@@ -100247,6 +100247,19 @@ var AdsPayload = Record2({
     rate: nat64,
     status: text
 });
+var balance = Record2({
+    available: nat64,
+    locked: nat64
+});
+var wallet = Record2({
+    owner: Principal3
+});
+var disputeStatus = Variant2({
+    none: text,
+    pending: text,
+    resolved: text,
+    rejected: text
+});
 var Order = Record2({
     id: text,
     buyer: Principal3,
@@ -100278,6 +100291,7 @@ var OrderPayload = Record2({
 var userProfileStorage = StableBTreeMap(0, text, userProfile);
 var orderStorage = StableBTreeMap(1, text, Order);
 var merchantAdsStorage = StableBTreeMap(2, text, merchantAds);
+var balanceStorage = StableBTreeMap(3, text, balance);
 var src_default = Canister({
     // create user profile
     createUserProfile: update([
@@ -100288,7 +100302,7 @@ var src_default = Canister({
             const user = _extends({}, payload, {
                 id: userId,
                 owner: ic.caller(),
-                merchantStatus: "inactive",
+                merchantStatus: "active",
                 userStatus: "verified",
                 joinedAt: /* @__PURE__ */ new Date().toISOString()
             });
@@ -100318,6 +100332,35 @@ var src_default = Canister({
         }
         return Ok(userProfiles[0]);
     }),
+    //get user by principal
+    getUserProfileByPrincipal: query([
+        Principal3
+    ], Result(userProfile, text), (owner)=>{
+        const userProfiles = userProfileStorage.values().filter((user)=>{
+            return user.owner.toText() === owner.toText();
+        });
+        if (userProfiles.length === 0) {
+            return Err(`User profile for owner = ${owner.toText()} not found.`);
+        }
+        return Ok(userProfiles[0]);
+    }),
+    // update user profile to register as merchant 
+    updateUserProfileToMerchant: update([
+        Principal3
+    ], Result(userProfile, text), (owner)=>{
+        const userOpt = userProfileStorage.get(owner.toText());
+        if ("None" in userOpt) {
+            return Err(`User profile for owner = ${owner.toText()} not found.`);
+        }
+        const user = userOpt.Some;
+        if (user.merchantStatus === "active") {
+            return Err("User is already a merchant.");
+        }
+        userProfileStorage.insert(user.id, _extends({}, user, {
+            merchantStatus: "active"
+        }));
+        return Ok(user);
+    }),
     //create merchant ads if merchant status is active
     createAds: update([
         AdsPayload
@@ -100345,6 +100388,85 @@ var src_default = Canister({
         } catch (error) {
             return Err("Failed to create ad.");
         }
+    }),
+    // get ads by id
+    getAdsById: query([
+        text
+    ], Result(merchantAds, text), (adsId)=>{
+        const adsOpt = merchantAdsStorage.get(adsId);
+        if ("None" in adsOpt) {
+            return Err(`Ads with id ${adsId} not found.`);
+        }
+        return Ok(adsOpt.Some);
+    }),
+    // create order
+    createOrder: update([
+        OrderPayload
+    ], Result(Order, text), (payload)=>{
+        try {
+            const orderId = v4_default2();
+            const order = _extends({}, payload, {
+                id: orderId,
+                buyer: ic.caller(),
+                status: "Initated",
+                dispute: "none",
+                arbitrator: Principal3.fromText("")
+            });
+            orderStorage.insert(orderId, order);
+            return Ok(order);
+        } catch (error) {
+            return Err("Failed to create order.");
+        }
+    }),
+    // get order by id
+    getOrderById: query([
+        text
+    ], Result(Order, text), (orderId)=>{
+        const orderOpt = orderStorage.get(orderId);
+        if ("None" in orderOpt) {
+            return Err(`Order with id ${orderId} not found.`);
+        }
+        return Ok(orderOpt.Some);
+    }),
+    //acknowledge order by seller
+    acknowledgeOrder: update([
+        text
+    ], Result(Order, text), (orderId)=>{
+        const orderOpt = orderStorage.get(orderId);
+        if ("None" in orderOpt) {
+            return Err(`Order with id ${orderId} not found.`);
+        }
+        const order = orderOpt.Some;
+        if (order.seller.toText() !== ic.caller().toText()) {
+            return Err("Unauthorized access.");
+        }
+        if (order.status !== "Initated") {
+            return Err("Order is not in Initated state.");
+        }
+        orderStorage.insert(orderId, _extends({}, order, {
+            status: "Acknowledged"
+        }));
+        return Ok(order);
+    }),
+    //cancel order by buyer if order is in Initated state
+    cancelOrder: update([
+        text
+    ], Result(Order, text), (orderId)=>{
+        const orderOpt = orderStorage.get(orderId);
+        if ("None" in orderOpt) {
+            return Err(`Order with id ${orderId} not found.`);
+        }
+        const order = orderOpt.Some;
+        if (order.buyer.toText() !== ic.caller().toText()) {
+            return Err("Unauthorized access.");
+        }
+        if (order.status !== "Initated") {
+            return Err("Order is not in Initated state.");
+        }
+        orderStorage.insert(orderId, _extends({}, order, {
+            status: "cancelled"
+        }));
+        return Ok(order);
     })
 });
 // <stdin>
