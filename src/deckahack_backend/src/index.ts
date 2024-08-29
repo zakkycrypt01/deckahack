@@ -161,7 +161,7 @@ export default Canister({
                     ...payload,
                     id: userId,
                     owner: ic.caller(),
-                    merchantStatus: "active",
+                    merchantStatus: "inactive",
                     userStatus: "verified",
                     joinedAt: new Date().toISOString(),
                 };
@@ -214,57 +214,61 @@ export default Canister({
         return Ok(userProfiles[0]);
     }),
 
-    // update user profile to register as merchant 
-    updateUserProfileToMerchant: update(
-        [Principal],
+    // register user as a merchant using id
+    registerMerchant: update(
+        [text],
         Result(userProfile, text),
-        (owner) => {
-            const userOpt = userProfileStorage.get(owner.toText());
+        (userId) => {
+            const userOpt = userProfileStorage.get(userId);
     
             if ("None" in userOpt) {
-                return Err(`User profile for owner = ${owner.toText()} not found.`);
+                return Err(`User profile with id ${userId} not found.`);
             }
     
             const user = userOpt.Some;
-            if (user.merchantStatus === "active") {
-                return Err("User is already a merchant.");
+            if (user.owner.toText() !== ic.caller().toText()) {
+                return Err("Unauthorized access.");
             }
     
-            userProfileStorage.insert(user.id, { ...user, merchantStatus: "active" });
+            userProfileStorage.insert(userId, { ...user, merchantStatus: "active" });
             return Ok(user);
         }
     ),
 
-    //create merchant ads if merchant status is active
-    createAds: update(
-        [AdsPayload],
+    //create merchant ads if merchant status is active using their id
+    createMerchantAds: update(
+        [text, AdsPayload],
         Result(merchantAds, text),
-        (payload) => {
+        (userId, payload) => {
+            const userOpt = userProfileStorage.get(userId);
+    
+            if ("None" in userOpt) {
+                return Err(`User profile with id ${userId} not found.`);
+            }
+    
+            const user = userOpt.Some;
+            if (user.owner.toText() !== ic.caller().toText()) {
+                return Err("Unauthorized access.");
+            }
+    
+            if (user.merchantStatus !== "active") {
+                return Err("Merchant status is not active.");
+            }
+    
             try {
                 const adsId = uuid();
-                const userOpt = userProfileStorage.get(ic.caller().toText());
-    
-                if ("None" in userOpt) {
-                    return Err(`User profile for owner = ${ic.caller().toText()} not found.`);
-                }
-    
-                const user = userOpt.Some;
-                if (user.merchantStatus === "active") {
-                    const ads = {
-                        ...payload,
-                        id: adsId,
-                        owner: ic.caller(),
-                        status: "active",
-                        createdAt: new Date().toISOString(),
-                        updatedAt: new Date().toISOString(),
-                    };
-                    merchantAdsStorage.insert(adsId, ads);
-                    return Ok(ads);
-                } else {
-                    return Err("User is not an active merchant.");
-                }
+                const ads = {
+                    ...payload,
+                    id: adsId,
+                    owner: ic.caller(),
+                    status: "active",
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                };
+                merchantAdsStorage.insert(adsId, ads);
+                return Ok(ads);
             } catch (error) {
-                return Err("Failed to create ad.");
+                return Err("Failed to create merchant ads.");
             }
         }
     ),
@@ -368,6 +372,87 @@ export default Canister({
             }
     
             orderStorage.insert(orderId, { ...order, status: "cancelled" });
+            return Ok(order);
+        }
+    ),
+
+    //dispute order by buyer
+    disputeOrder: update(
+        [text],
+        Result(Order, text),
+        (orderId) => {
+            const orderOpt = orderStorage.get(orderId);
+    
+            if ("None" in orderOpt) {
+                return Err(`Order with id ${orderId} not found.`);
+            }
+    
+            const order = orderOpt.Some;
+            if (order.buyer.toText() !== ic.caller().toText()) {
+                return Err("Unauthorized access.");
+            }
+    
+            if (order.status !== "Acknowledged") {
+                return Err("Order is not in Acknowledged state.");
+            }
+    
+            orderStorage.insert(orderId, { ...order, status: "Disputed" });
+            return Ok(order);
+        }
+    ),
+
+    //lock token in wallet in seller's wallet
+    lockToken: update(
+        [text, nat64],
+        Result(balance, text),
+        (userId, amount) => {
+            const userOpt = userProfileStorage.get(userId);
+    
+            if ("None" in userOpt) {
+                return Err(`User profile with id ${userId} not found.`);
+            }
+    
+            const user = userOpt.Some;
+            if (user.owner.toText() !== ic.caller().toText()) {
+                return Err("Unauthorized access.");
+            }
+    
+            const balanceOpt = balanceStorage.get(userId);
+            if ("None" in balanceOpt) {
+                return Err(`Balance for user with id ${userId} not found.`);
+            }
+    
+            const balance = balanceOpt.Some;
+            if (balance.available < amount) {
+                return Err("Insufficient balance.");
+            }
+    
+            balanceStorage.insert(userId, { ...balance, available: balance.available - amount, locked: balance.locked + amount });
+            return Ok(balance);
+        }
+    ),
+
+    // release the locked amount in the seller's wallet to th buyer
+    releaseAmount: update(
+        [text],
+        Result(Order, text),
+        (orderId) => {
+            const orderOpt = orderStorage.get(orderId);
+    
+            if ("None" in orderOpt) {
+                return Err(`Order with id ${orderId} not found.`);
+            }
+    
+            const order = orderOpt.Some;
+            if (order.seller.toText() !== ic.caller().toText()) {
+                return Err("Unauthorized access.");
+            }
+    
+            if (order.status !== "Awaiting_release") {
+                return Err("Order is not in Awaiting_release state.");
+            }
+    
+            orderStorage.insert(orderId, { ...order, status: "Completed" });
             return Ok(order);
         }
     ),

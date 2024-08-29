@@ -100302,7 +100302,7 @@ var src_default = Canister({
             const user = _extends({}, payload, {
                 id: userId,
                 owner: ic.caller(),
-                merchantStatus: "active",
+                merchantStatus: "inactive",
                 userStatus: "verified",
                 joinedAt: /* @__PURE__ */ new Date().toISOString()
             });
@@ -100344,49 +100344,52 @@ var src_default = Canister({
         }
         return Ok(userProfiles[0]);
     }),
-    // update user profile to register as merchant 
-    updateUserProfileToMerchant: update([
-        Principal3
-    ], Result(userProfile, text), (owner)=>{
-        const userOpt = userProfileStorage.get(owner.toText());
+    // register user as a merchant using id
+    registerMerchant: update([
+        text
+    ], Result(userProfile, text), (userId)=>{
+        const userOpt = userProfileStorage.get(userId);
         if ("None" in userOpt) {
-            return Err(`User profile for owner = ${owner.toText()} not found.`);
+            return Err(`User profile with id ${userId} not found.`);
         }
         const user = userOpt.Some;
-        if (user.merchantStatus === "active") {
-            return Err("User is already a merchant.");
+        if (user.owner.toText() !== ic.caller().toText()) {
+            return Err("Unauthorized access.");
         }
-        userProfileStorage.insert(user.id, _extends({}, user, {
+        userProfileStorage.insert(userId, _extends({}, user, {
             merchantStatus: "active"
         }));
         return Ok(user);
     }),
-    //create merchant ads if merchant status is active
-    createAds: update([
+    //create merchant ads if merchant status is active using their id
+    createMerchantAds: update([
+        text,
         AdsPayload
-    ], Result(merchantAds, text), (payload)=>{
+    ], Result(merchantAds, text), (userId, payload)=>{
+        const userOpt = userProfileStorage.get(userId);
+        if ("None" in userOpt) {
+            return Err(`User profile with id ${userId} not found.`);
+        }
+        const user = userOpt.Some;
+        if (user.owner.toText() !== ic.caller().toText()) {
+            return Err("Unauthorized access.");
+        }
+        if (user.merchantStatus !== "active") {
+            return Err("Merchant status is not active.");
+        }
         try {
             const adsId = v4_default2();
-            const userOpt = userProfileStorage.get(ic.caller().toText());
-            if ("None" in userOpt) {
-                return Err(`User profile for owner = ${ic.caller().toText()} not found.`);
-            }
-            const user = userOpt.Some;
-            if (user.merchantStatus === "active") {
-                const ads = _extends({}, payload, {
-                    id: adsId,
-                    owner: ic.caller(),
-                    status: "active",
-                    createdAt: /* @__PURE__ */ new Date().toISOString(),
-                    updatedAt: /* @__PURE__ */ new Date().toISOString()
-                });
-                merchantAdsStorage.insert(adsId, ads);
-                return Ok(ads);
-            } else {
-                return Err("User is not an active merchant.");
-            }
+            const ads = _extends({}, payload, {
+                id: adsId,
+                owner: ic.caller(),
+                status: "active",
+                createdAt: /* @__PURE__ */ new Date().toISOString(),
+                updatedAt: /* @__PURE__ */ new Date().toISOString()
+            });
+            merchantAdsStorage.insert(adsId, ads);
+            return Ok(ads);
         } catch (error) {
-            return Err("Failed to create ad.");
+            return Err("Failed to create merchant ads.");
         }
     }),
     // get ads by id
