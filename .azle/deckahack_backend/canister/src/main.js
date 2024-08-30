@@ -100293,6 +100293,16 @@ var orderStorage = StableBTreeMap(1, text, Order);
 var merchantAdsStorage = StableBTreeMap(2, text, merchantAds);
 var balanceStorage = StableBTreeMap(3, text, balance);
 var src_default = Canister({
+    // get balance by user id and store it in the balance storage
+    getBalance: query([
+        text
+    ], Result(balance, text), (userId)=>{
+        const balanceOpt = balanceStorage.get(userId);
+        if ("None" in balanceOpt) {
+            return Err(`Balance for user with id ${userId} not found.`);
+        }
+        return Ok(balanceOpt.Some);
+    }),
     // create user profile
     createUserProfile: update([
         userProfilePayload
@@ -100468,6 +100478,153 @@ var src_default = Canister({
         }
         orderStorage.insert(orderId, _extends({}, order, {
             status: "cancelled"
+        }));
+        return Ok(order);
+    }),
+    //dispute order by buyer
+    disputeOrder: update([
+        text
+    ], Result(Order, text), (orderId)=>{
+        const orderOpt = orderStorage.get(orderId);
+        if ("None" in orderOpt) {
+            return Err(`Order with id ${orderId} not found.`);
+        }
+        const order = orderOpt.Some;
+        if (order.buyer.toText() !== ic.caller().toText()) {
+            return Err("Unauthorized access.");
+        }
+        if (order.status !== "Acknowledged") {
+            return Err("Order is not in Acknowledged state.");
+        }
+        orderStorage.insert(orderId, _extends({}, order, {
+            status: "Disputed"
+        }));
+        return Ok(order);
+    }),
+    //lock token in wallet in seller's wallet
+    lockToken: update([
+        text,
+        nat64
+    ], Result(balance, text), (userId, amount)=>{
+        const userOpt = userProfileStorage.get(userId);
+        if ("None" in userOpt) {
+            return Err(`User profile with id ${userId} not found.`);
+        }
+        const user = userOpt.Some;
+        if (user.owner.toText() !== ic.caller().toText()) {
+            return Err("Unauthorized access.");
+        }
+        const balanceOpt = balanceStorage.get(userId);
+        if ("None" in balanceOpt) {
+            return Err(`Balance for user with id ${userId} not found.`);
+        }
+        const balance2 = balanceOpt.Some;
+        if (balance2.available < amount) {
+            return Err("Insufficient balance.");
+        }
+        balanceStorage.insert(userId, _extends({}, balance2, {
+            available: balance2.available - amount,
+            locked: balance2.locked + amount
+        }));
+        return Ok(balance2);
+    }),
+    //awaiting payment
+    awaitingPayment: update([
+        text
+    ], Result(Order, text), (orderId)=>{
+        const orderOpt = orderStorage.get(orderId);
+        if ("None" in orderOpt) {
+            return Err(`Order with id ${orderId} not found.`);
+        }
+        const order = orderOpt.Some;
+        if (order.seller.toText() !== ic.caller().toText()) {
+            return Err("Unauthorized access.");
+        }
+        if (order.status !== "Acknowledged") {
+            return Err("Order is not in Acknowledged state.");
+        }
+        orderStorage.insert(orderId, _extends({}, order, {
+            status: "Awaiting_payment"
+        }));
+        return Ok(order);
+    }),
+    // release the locked amount in the seller's wallet to the buyer
+    releaseAmount: update([
+        text
+    ], Result(Order, text), (orderId)=>{
+        const orderOpt = orderStorage.get(orderId);
+        if ("None" in orderOpt) {
+            return Err(`Order with id ${orderId} not found.`);
+        }
+        const order = orderOpt.Some;
+        if (order.seller.toText() !== ic.caller().toText()) {
+            return Err("Unauthorized access.");
+        }
+        if (order.status !== "Awaiting_release") {
+            return Err("Order is not in Awaiting_release state.");
+        }
+        orderStorage.insert(orderId, _extends({}, order, {
+            status: "Completed"
+        }));
+        return Ok(order);
+    }),
+    //complete order 
+    completeOrder: update([
+        text
+    ], Result(Order, text), (orderId)=>{
+        const orderOpt = orderStorage.get(orderId);
+        if ("None" in orderOpt) {
+            return Err(`Order with id ${orderId} not found.`);
+        }
+        const order = orderOpt.Some;
+        if (order.buyer.toText() !== ic.caller().toText()) {
+            return Err("Unauthorized access.");
+        }
+        if (order.status !== "Awaiting_release") {
+            return Err("Order is not in Awaiting_release state.");
+        }
+        orderStorage.insert(orderId, _extends({}, order, {
+            status: "Completed"
+        }));
+        return Ok(order);
+    }),
+    //resolve dispute in favor of buyer
+    resolveDispute: update([
+        text
+    ], Result(Order, text), (orderId)=>{
+        const orderOpt = orderStorage.get(orderId);
+        if ("None" in orderOpt) {
+            return Err(`Order with id ${orderId} not found.`);
+        }
+        const order = orderOpt.Some;
+        if (order.arbitrator.toText() !== ic.caller().toText()) {
+            return Err("Unauthorized access.");
+        }
+        if (order.status !== "Disputed") {
+            return Err("Order is not in Disputed state.");
+        }
+        orderStorage.insert(orderId, _extends({}, order, {
+            status: "Completed"
+        }));
+        return Ok(order);
+    }),
+    //reject dispute in favor of seller
+    rejectDispute: update([
+        text
+    ], Result(Order, text), (orderId)=>{
+        const orderOpt = orderStorage.get(orderId);
+        if ("None" in orderOpt) {
+            return Err(`Order with id ${orderId} not found.`);
+        }
+        const order = orderOpt.Some;
+        if (order.arbitrator.toText() !== ic.caller().toText()) {
+            return Err("Unauthorized access.");
+        }
+        if (order.status !== "Disputed") {
+            return Err("Order is not in Disputed state.");
+        }
+        orderStorage.insert(orderId, _extends({}, order, {
+            status: "Completed"
         }));
         return Ok(order);
     })
