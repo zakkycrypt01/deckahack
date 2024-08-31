@@ -30,7 +30,7 @@ function _extends() {
     };
     return _extends.apply(this, arguments);
 }
-var _class, _class1, _class2, _class3, _class4, _class5;
+var _class, _class1, _class2, _class3, _class4, _class5, _class6;
 var __create = Object.create;
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -98378,8 +98378,28 @@ function Record2(obj) {
         }
     });
 }
+// node_modules/azle/src/lib/candid/types/constructed/vec.ts
+var AzleVec = (_class1 = class {
+    toBytes(data) {
+        return encode3(this, data);
+    }
+    fromBytes(bytes2) {
+        return decode3(this, bytes2);
+    }
+    getIdl(parents) {
+        return idl_exports.Vec(toIdl(this.innerType, parents));
+    }
+    constructor(t){
+        this.tsType = {};
+        this._azleKind = "AzleVec";
+        this.innerType = t;
+    }
+}, _class1._azleKind = "AzleVec", _class1);
+function Vec2(t) {
+    return new AzleVec(t);
+}
 // node_modules/azle/src/lib/candid/types/primitive/nats/nat.ts
-var AzleNat = (_class1 = class {
+var AzleNat = (_class2 = class {
     static toBytes(data) {
         return encode3(this, data);
     }
@@ -98392,10 +98412,10 @@ var AzleNat = (_class1 = class {
     constructor(){
         this._azleKind = "AzleNat";
     }
-}, _class1._azleKind = "AzleNat", _class1);
+}, _class2._azleKind = "AzleNat", _class2);
 var nat = AzleNat;
 // node_modules/azle/src/lib/candid/types/primitive/null.ts
-var AzleNull = (_class2 = class {
+var AzleNull = (_class3 = class {
     static toBytes(data) {
         return encode3(this, data);
     }
@@ -98408,10 +98428,10 @@ var AzleNull = (_class2 = class {
     constructor(){
         this._azleKind = "AzleNull";
     }
-}, _class2._azleKind = "AzleNull", _class2);
+}, _class3._azleKind = "AzleNull", _class3);
 var Null2 = AzleNull;
 // node_modules/azle/src/lib/candid/types/primitive/text.ts
-var AzleText = (_class3 = class {
+var AzleText = (_class4 = class {
     static toBytes(data) {
         return encode3(this, data);
     }
@@ -98424,7 +98444,7 @@ var AzleText = (_class3 = class {
     constructor(){
         this._azleKind = "AzleText";
     }
-}, _class3._azleKind = "AzleText", _class3);
+}, _class4._azleKind = "AzleText", _class4);
 var text = AzleText;
 // node_modules/azle/src/lib/candid/types/reference/service/canister_function/query_update.ts
 function createQueryMethods(canisterOptions) {
@@ -98580,7 +98600,7 @@ function Canister(canisterOptions) {
     return result;
 }
 // node_modules/azle/src/lib/candid/types/reference/principal.ts
-var Principal3 = (_class4 = class extends Principal {
+var Principal3 = (_class5 = class extends Principal {
     static toBytes(data) {
         return encode3(this, data);
     }
@@ -98590,7 +98610,7 @@ var Principal3 = (_class4 = class extends Principal {
     static getIdl(_parents) {
         return idl_exports.Principal;
     }
-}, _class4._azleKind = "Principal", _class4);
+}, _class5._azleKind = "Principal", _class5);
 // node_modules/azle/src/lib/candid/serde/decode.ts
 function decode3(candidType, data) {
     if (Array.isArray(candidType)) {
@@ -98818,7 +98838,7 @@ function encodeMultiple(candidTypes, data) {
     return new Uint8Array(idl_exports.encode(idls, values));
 }
 // node_modules/azle/src/lib/candid/types/primitive/nats/nat64.ts
-var AzleNat64 = (_class5 = class {
+var AzleNat64 = (_class6 = class {
     static toBytes(data) {
         return encode3(this, data);
     }
@@ -98831,7 +98851,7 @@ var AzleNat64 = (_class5 = class {
     constructor(){
         this._azleKind = "AzleNat64";
     }
-}, _class5._azleKind = "AzleNat64", _class5);
+}, _class6._azleKind = "AzleNat64", _class6);
 var nat64 = AzleNat64;
 // node_modules/azle/src/lib/ic/call_raw.ts
 function callRaw(canisterId, method, argsRaw, payment) {
@@ -100230,8 +100250,6 @@ var userStatus = Variant2({
 var merchantAds = Record2({
     id: text,
     tokenType: Principal3,
-    TokenAmount: nat64,
-    rate: nat64,
     owner: Principal3,
     status: text,
     createdAt: text,
@@ -100293,16 +100311,6 @@ var orderStorage = StableBTreeMap(1, text, Order);
 var merchantAdsStorage = StableBTreeMap(2, text, merchantAds);
 var balanceStorage = StableBTreeMap(3, text, balance);
 var src_default = Canister({
-    // get balance by user id and store it in the balance storage
-    getBalance: query([
-        text
-    ], Result(balance, text), (userId)=>{
-        const balanceOpt = balanceStorage.get(userId);
-        if ("None" in balanceOpt) {
-            return Err(`Balance for user with id ${userId} not found.`);
-        }
-        return Ok(balanceOpt.Some);
-    }),
     // create user profile
     createUserProfile: update([
         userProfilePayload
@@ -100412,221 +100420,54 @@ var src_default = Canister({
         }
         return Ok(adsOpt.Some);
     }),
-    // create order
+    // get all ads
+    getAllAds: query([], Result(Vec2(merchantAds), text), ()=>{
+        return Ok(merchantAdsStorage.values());
+    }),
+    // get all active ads
+    getAllActiveAds: query([], Result(Vec2(merchantAds), text), ()=>{
+        const ads = merchantAdsStorage.values().filter((ad)=>{
+            return ad.status === "active";
+        });
+        return Ok(ads);
+    }),
+    // get all inactive ads
+    getAllInactiveAds: query([], Result(Vec2(merchantAds), text), ()=>{
+        const ads = merchantAdsStorage.values().filter((ad)=>{
+            return ad.status === "inactive";
+        });
+        return Ok(ads);
+    }),
+    // get all suspended ads
+    getAllSuspendedAds: query([], Result(Vec2(merchantAds), text), ()=>{
+        const ads = merchantAdsStorage.values().filter((ad)=>{
+            return ad.status === "suspended";
+        });
+        return Ok(ads);
+    }),
+    // get all ads by owner
+    getAllAdsByOwner: query([
+        Principal3
+    ], Result(Vec2(merchantAds), text), (owner)=>{
+        const ads = merchantAdsStorage.values().filter((ad)=>{
+            return ad.owner.toText() === owner.toText();
+        });
+        return Ok(ads);
+    }),
+    // create order 
     createOrder: update([
         OrderPayload
     ], Result(Order, text), (payload)=>{
         try {
             const orderId = v4_default2();
             const order = _extends({}, payload, {
-                id: orderId,
-                buyer: ic.caller(),
-                status: "Initated",
-                dispute: "none",
-                arbitrator: Principal3.fromText("")
+                id: orderId
             });
             orderStorage.insert(orderId, order);
             return Ok(order);
         } catch (error) {
             return Err("Failed to create order.");
         }
-    }),
-    // get order by id
-    getOrderById: query([
-        text
-    ], Result(Order, text), (orderId)=>{
-        const orderOpt = orderStorage.get(orderId);
-        if ("None" in orderOpt) {
-            return Err(`Order with id ${orderId} not found.`);
-        }
-        return Ok(orderOpt.Some);
-    }),
-    //acknowledge order by seller
-    acknowledgeOrder: update([
-        text
-    ], Result(Order, text), (orderId)=>{
-        const orderOpt = orderStorage.get(orderId);
-        if ("None" in orderOpt) {
-            return Err(`Order with id ${orderId} not found.`);
-        }
-        const order = orderOpt.Some;
-        if (order.seller.toText() !== ic.caller().toText()) {
-            return Err("Unauthorized access.");
-        }
-        if (order.status !== "Initated") {
-            return Err("Order is not in Initated state.");
-        }
-        orderStorage.insert(orderId, _extends({}, order, {
-            status: "Acknowledged"
-        }));
-        return Ok(order);
-    }),
-    //cancel order by buyer if order is in Initated state
-    cancelOrder: update([
-        text
-    ], Result(Order, text), (orderId)=>{
-        const orderOpt = orderStorage.get(orderId);
-        if ("None" in orderOpt) {
-            return Err(`Order with id ${orderId} not found.`);
-        }
-        const order = orderOpt.Some;
-        if (order.buyer.toText() !== ic.caller().toText()) {
-            return Err("Unauthorized access.");
-        }
-        if (order.status !== "Initated") {
-            return Err("Order is not in Initated state.");
-        }
-        orderStorage.insert(orderId, _extends({}, order, {
-            status: "cancelled"
-        }));
-        return Ok(order);
-    }),
-    //dispute order by buyer
-    disputeOrder: update([
-        text
-    ], Result(Order, text), (orderId)=>{
-        const orderOpt = orderStorage.get(orderId);
-        if ("None" in orderOpt) {
-            return Err(`Order with id ${orderId} not found.`);
-        }
-        const order = orderOpt.Some;
-        if (order.buyer.toText() !== ic.caller().toText()) {
-            return Err("Unauthorized access.");
-        }
-        if (order.status !== "Acknowledged") {
-            return Err("Order is not in Acknowledged state.");
-        }
-        orderStorage.insert(orderId, _extends({}, order, {
-            status: "Disputed"
-        }));
-        return Ok(order);
-    }),
-    //lock token in wallet in seller's wallet
-    lockToken: update([
-        text,
-        nat64
-    ], Result(balance, text), (userId, amount)=>{
-        const userOpt = userProfileStorage.get(userId);
-        if ("None" in userOpt) {
-            return Err(`User profile with id ${userId} not found.`);
-        }
-        const user = userOpt.Some;
-        if (user.owner.toText() !== ic.caller().toText()) {
-            return Err("Unauthorized access.");
-        }
-        const balanceOpt = balanceStorage.get(userId);
-        if ("None" in balanceOpt) {
-            return Err(`Balance for user with id ${userId} not found.`);
-        }
-        const balance2 = balanceOpt.Some;
-        if (balance2.available < amount) {
-            return Err("Insufficient balance.");
-        }
-        balanceStorage.insert(userId, _extends({}, balance2, {
-            available: balance2.available - amount,
-            locked: balance2.locked + amount
-        }));
-        return Ok(balance2);
-    }),
-    //awaiting payment
-    awaitingPayment: update([
-        text
-    ], Result(Order, text), (orderId)=>{
-        const orderOpt = orderStorage.get(orderId);
-        if ("None" in orderOpt) {
-            return Err(`Order with id ${orderId} not found.`);
-        }
-        const order = orderOpt.Some;
-        if (order.seller.toText() !== ic.caller().toText()) {
-            return Err("Unauthorized access.");
-        }
-        if (order.status !== "Acknowledged") {
-            return Err("Order is not in Acknowledged state.");
-        }
-        orderStorage.insert(orderId, _extends({}, order, {
-            status: "Awaiting_payment"
-        }));
-        return Ok(order);
-    }),
-    // release the locked amount in the seller's wallet to the buyer
-    releaseAmount: update([
-        text
-    ], Result(Order, text), (orderId)=>{
-        const orderOpt = orderStorage.get(orderId);
-        if ("None" in orderOpt) {
-            return Err(`Order with id ${orderId} not found.`);
-        }
-        const order = orderOpt.Some;
-        if (order.seller.toText() !== ic.caller().toText()) {
-            return Err("Unauthorized access.");
-        }
-        if (order.status !== "Awaiting_release") {
-            return Err("Order is not in Awaiting_release state.");
-        }
-        orderStorage.insert(orderId, _extends({}, order, {
-            status: "Completed"
-        }));
-        return Ok(order);
-    }),
-    //complete order 
-    completeOrder: update([
-        text
-    ], Result(Order, text), (orderId)=>{
-        const orderOpt = orderStorage.get(orderId);
-        if ("None" in orderOpt) {
-            return Err(`Order with id ${orderId} not found.`);
-        }
-        const order = orderOpt.Some;
-        if (order.buyer.toText() !== ic.caller().toText()) {
-            return Err("Unauthorized access.");
-        }
-        if (order.status !== "Awaiting_release") {
-            return Err("Order is not in Awaiting_release state.");
-        }
-        orderStorage.insert(orderId, _extends({}, order, {
-            status: "Completed"
-        }));
-        return Ok(order);
-    }),
-    //resolve dispute in favor of buyer
-    resolveDispute: update([
-        text
-    ], Result(Order, text), (orderId)=>{
-        const orderOpt = orderStorage.get(orderId);
-        if ("None" in orderOpt) {
-            return Err(`Order with id ${orderId} not found.`);
-        }
-        const order = orderOpt.Some;
-        if (order.arbitrator.toText() !== ic.caller().toText()) {
-            return Err("Unauthorized access.");
-        }
-        if (order.status !== "Disputed") {
-            return Err("Order is not in Disputed state.");
-        }
-        orderStorage.insert(orderId, _extends({}, order, {
-            status: "Completed"
-        }));
-        return Ok(order);
-    }),
-    //reject dispute in favor of seller
-    rejectDispute: update([
-        text
-    ], Result(Order, text), (orderId)=>{
-        const orderOpt = orderStorage.get(orderId);
-        if ("None" in orderOpt) {
-            return Err(`Order with id ${orderId} not found.`);
-        }
-        const order = orderOpt.Some;
-        if (order.arbitrator.toText() !== ic.caller().toText()) {
-            return Err("Unauthorized access.");
-        }
-        if (order.status !== "Disputed") {
-            return Err("Order is not in Disputed state.");
-        }
-        orderStorage.insert(orderId, _extends({}, order, {
-            status: "Completed"
-        }));
-        return Ok(order);
     })
 });
 // <stdin>

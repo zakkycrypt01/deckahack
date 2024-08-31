@@ -58,8 +58,6 @@ const userStatus = Variant({
 const merchantAds = Record({
     id: text,
     tokenType: Principal,
-    TokenAmount: nat64,
-    rate: nat64,
     owner: Principal,
     status: text,
     createdAt: text,
@@ -151,16 +149,6 @@ const TIMEOUT_PERIOD = 300000000000n;
 
 
 export default Canister({
-    // get balance by user id and store it in the balance storage
-    getBalance: query([text], Result(balance, text), (userId) => {
-        const balanceOpt = balanceStorage.get(userId);
-    
-        if ("None" in balanceOpt) {
-            return Err(`Balance for user with id ${userId} not found.`);
-        }
-    
-        return Ok(balanceOpt.Some);
-    }),
     // create user profile
     createUserProfile: update(
         [userProfilePayload],
@@ -298,8 +286,63 @@ export default Canister({
             return Ok(adsOpt.Some);
         }
     ),
-
-    // create order
+    // get all ads
+    getAllAds: query(
+        [],
+        Result(Vec(merchantAds), text),
+        () => {
+            return Ok(merchantAdsStorage.values());
+        }
+    ),
+    // get all active ads
+    getAllActiveAds: query(
+        [],
+        Result(Vec(merchantAds), text),
+        () => {
+            const ads = merchantAdsStorage.values().filter((ad) => {
+                return ad.status === "active";
+            });
+    
+            return Ok(ads);
+        }
+    ),
+    // get all inactive ads
+    getAllInactiveAds: query(
+        [],
+        Result(Vec(merchantAds), text),
+        () => {
+            const ads = merchantAdsStorage.values().filter((ad) => {
+                return ad.status === "inactive";
+            });
+    
+            return Ok(ads);
+        }
+    ),
+    // get all suspended ads
+    getAllSuspendedAds: query(
+        [],
+        Result(Vec(merchantAds), text),
+        () => {
+            const ads = merchantAdsStorage.values().filter((ad) => {
+                return ad.status === "suspended";
+            });
+    
+            return Ok(ads);
+        }
+    ),
+    // get all ads by owner
+    getAllAdsByOwner: query(
+        [Principal],
+        Result(Vec(merchantAds), text),
+        (owner) => {
+            const ads = merchantAdsStorage.values().filter((ad) => {
+                return ad.owner.toText() === owner.toText();
+            });
+    
+            return Ok(ads);
+        }
+    ),
+    // create order 
     createOrder: update(
         [OrderPayload],
         Result(Order, text),
@@ -309,10 +352,6 @@ export default Canister({
                 const order = {
                     ...payload,
                     id: orderId,
-                    buyer: ic.caller(),
-                    status: "Initated",
-                    dispute: "none",
-                    arbitrator: Principal.fromText(""),
                 };
                 orderStorage.insert(orderId, order);
                 return Ok(order);
@@ -321,23 +360,7 @@ export default Canister({
             }
         }
     ),
-    
-    // get order by id
-    getOrderById: query(
-        [text],
-        Result(Order, text),
-        (orderId) => {
-            const orderOpt = orderStorage.get(orderId);
-    
-            if ("None" in orderOpt) {
-                return Err(`Order with id ${orderId} not found.`);
-            }
-    
-            return Ok(orderOpt.Some);
-        }
-    ),
-
-    //acknowledge order by seller
+    //acknowledge order
     acknowledgeOrder: update(
         [text],
         Result(Order, text),
@@ -349,20 +372,19 @@ export default Canister({
             }
     
             const order = orderOpt.Some;
-            if (order.seller.toText() !== ic.caller().toText()) {
+            if (order.buyer.toText() !== ic.caller().toText()) {
                 return Err("Unauthorized access.");
             }
     
             if (order.status !== "Initated") {
-                return Err("Order is not in Initated state.");
+                return Err("Order status is not Initated.");
             }
     
             orderStorage.insert(orderId, { ...order, status: "Acknowledged" });
             return Ok(order);
         }
     ),
-
-    //cancel order by buyer if order is in Initated state
+    //cancel order
     cancelOrder: update(
         [text],
         Result(Order, text),
@@ -379,16 +401,15 @@ export default Canister({
             }
     
             if (order.status !== "Initated") {
-                return Err("Order is not in Initated state.");
+                return Err("Order status is not Initated.");
             }
     
             orderStorage.insert(orderId, { ...order, status: "cancelled" });
             return Ok(order);
         }
     ),
-
-    //dispute order by buyer
-    disputeOrder: update(
+    // change order status to awaiting payment
+    awaitingPayment: update(
         [text],
         Result(Order, text),
         (orderId) => {
@@ -404,71 +425,15 @@ export default Canister({
             }
     
             if (order.status !== "Acknowledged") {
-                return Err("Order is not in Acknowledged state.");
-            }
-    
-            orderStorage.insert(orderId, { ...order, status: "Disputed" });
-            return Ok(order);
-        }
-    ),
-
-    //lock token in wallet in seller's wallet
-    lockToken: update(
-        [text, nat64],
-        Result(balance, text),
-        (userId, amount) => {
-            const userOpt = userProfileStorage.get(userId);
-    
-            if ("None" in userOpt) {
-                return Err(`User profile with id ${userId} not found.`);
-            }
-    
-            const user = userOpt.Some;
-            if (user.owner.toText() !== ic.caller().toText()) {
-                return Err("Unauthorized access.");
-            }
-    
-            const balanceOpt = balanceStorage.get(userId);
-            if ("None" in balanceOpt) {
-                return Err(`Balance for user with id ${userId} not found.`);
-            }
-    
-            const balance = balanceOpt.Some;
-            if (balance.available < amount) {
-                return Err("Insufficient balance.");
-            }
-    
-            balanceStorage.insert(userId, { ...balance, available: balance.available - amount, locked: balance.locked + amount });
-            return Ok(balance);
-        }
-    ),
-    //awaiting payment
-    awaitingPayment: update(
-        [text],
-        Result(Order, text),
-        (orderId) => {
-            const orderOpt = orderStorage.get(orderId);
-    
-            if ("None" in orderOpt) {
-                return Err(`Order with id ${orderId} not found.`);
-            }
-    
-            const order = orderOpt.Some;
-            if (order.seller.toText() !== ic.caller().toText()) {
-                return Err("Unauthorized access.");
-            }
-    
-            if (order.status !== "Acknowledged") {
-                return Err("Order is not in Acknowledged state.");
+                return Err("Order status is not Acknowledged.");
             }
     
             orderStorage.insert(orderId, { ...order, status: "Awaiting_payment" });
             return Ok(order);
         }
     ),
-
-    // release the locked amount in the seller's wallet to the buyer
-    releaseAmount: update(
+    // change order status to awaiting release
+    awaitingRelease: update(
         [text],
         Result(Order, text),
         (orderId) => {
@@ -483,15 +448,15 @@ export default Canister({
                 return Err("Unauthorized access.");
             }
     
-            if (order.status !== "Awaiting_release") {
-                return Err("Order is not in Awaiting_release state.");
+            if (order.status !== "Awaiting_payment") {
+                return Err("Order status is not Awaiting_payment.");
             }
     
-            orderStorage.insert(orderId, { ...order, status: "Completed" });
+            orderStorage.insert(orderId, { ...order, status: "Awaiting_release" });
             return Ok(order);
         }
     ),
-    //complete order 
+    // change order status to completed
     completeOrder: update(
         [text],
         Result(Order, text),
@@ -508,14 +473,38 @@ export default Canister({
             }
     
             if (order.status !== "Awaiting_release") {
-                return Err("Order is not in Awaiting_release state.");
+                return Err("Order status is not Awaiting_release.");
             }
     
             orderStorage.insert(orderId, { ...order, status: "Completed" });
             return Ok(order);
         }
     ),
-    //resolve dispute in favor of buyer
+    // dispute order
+    disputeOrder: update(
+        [text],
+        Result(Order, text),
+        (orderId) => {
+            const orderOpt = orderStorage.get(orderId);
+    
+            if ("None" in orderOpt) {
+                return Err(`Order with id ${orderId} not found.`);
+            }
+    
+            const order = orderOpt.Some;
+            if (order.buyer.toText() !== ic.caller().toText()) {
+                return Err("Unauthorized access.");
+            }
+    
+            if (order.status !== "Awaiting_release") {
+                return Err("Order status is not Awaiting_release.");
+            }
+    
+            orderStorage.insert(orderId, { ...order, status: "Disputed" });
+            return Ok(order);
+        }
+    ),
+    // resolve dispute in favor of buyer
     resolveDispute: update(
         [text],
         Result(Order, text),
@@ -532,14 +521,14 @@ export default Canister({
             }
     
             if (order.status !== "Disputed") {
-                return Err("Order is not in Disputed state.");
+                return Err("Order status is not Disputed.");
             }
     
             orderStorage.insert(orderId, { ...order, status: "Completed" });
             return Ok(order);
         }
     ),
-    //reject dispute in favor of seller
+    // reject dispute in favor of seller
     rejectDispute: update(
         [text],
         Result(Order, text),
@@ -556,14 +545,14 @@ export default Canister({
             }
     
             if (order.status !== "Disputed") {
-                return Err("Order is not in Disputed state.");
+                return Err("Order status is not Disputed.");
             }
     
             orderStorage.insert(orderId, { ...order, status: "Completed" });
             return Ok(order);
         }
     ),
-    
+    //
 });
 
 
