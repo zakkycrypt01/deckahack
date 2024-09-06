@@ -552,7 +552,70 @@ export default Canister({
             return Ok(order);
         }
     ),
-    //
+    //transfer funds
+    transferFunds: update(
+        [text, nat64],
+        Result(balance, text),
+        (userId, amount) => {
+            const userOpt = userProfileStorage.get(userId);
+    
+            if ("None" in userOpt) {
+                return Err(`User profile with id ${userId} not found.`);
+            }
+    
+            const user = userOpt.Some;
+            if (user.owner.toText() !== ic.caller().toText()) {
+                return Err("Unauthorized access.");
+            }
+    
+            const balanceOpt = balanceStorage.get(userId);
+    
+            if ("None" in balanceOpt) {
+                return Err(`Balance for user with id ${userId} not found.`);
+            }
+    
+            const balance = balanceOpt.Some;
+            if (balance.available < amount) {
+                return Err("Insufficient balance.");
+            }
+    
+            balanceStorage.insert(userId, {
+                ...balance,
+                available: balance.available - amount,
+            });
+            return Ok(balance);
+        }
+    ),
+    // send funds from seller to buyer
+    sendFunds: update(
+        [text, nat64],
+        Result(balance, text),
+        (userId, amount) => {
+            const userOpt = userProfileStorage.get(userId);
+    
+            if ("None" in userOpt) {
+                return Err(`User profile with id ${userId} not found.`);
+            }
+    
+            const user = userOpt.Some;
+            if (user.owner.toText() !== ic.caller().toText()) {
+                return Err("Unauthorized access.");
+            }
+    
+            const balanceOpt = balanceStorage.get(userId);
+    
+            if ("None" in balanceOpt) {
+                return Err(`Balance for user with id ${userId} not found.`);
+            }
+    
+            const balance = balanceOpt.Some;
+            balanceStorage.insert(userId, {
+                ...balance,
+                available: balance.available + amount,
+            });
+            return Ok(balance);
+        }
+    ),
 });
 
 
