@@ -20,17 +20,17 @@ import {
     Result,
     bool,
     Canister,
-} from "azle";
-import {
+  } from "azle";
+  import {
     Address,
     Ledger,
     binaryAddressFromAddress,
     binaryAddressFromPrincipal,
     hexAddressFromPrincipal,
-} from "azle/canisters/ledger";
+  } from "azle/canisters/ledger";
 import { v4 as uuid } from 'uuid';
 
-// Create user struct
+//create user struct
 const userProfile = Record({
     id: text,
     owner: Principal,
@@ -41,20 +41,20 @@ const userProfile = Record({
     userStatus: text
 });
 
-// Merchant status Enum
+//merchant status Enum
 const merchantStatus = Variant({
     active: text,
     inactive: text,
     suspended: text,
 });
 
-// User status Enum
+// user status Enum
 const userStatus = Variant({
     verified: text,
     banned: text
 });
 
-// Merchant ads struct
+// merchant ads struct
 const merchantAds = Record({
     id: text,
     tokenType: Principal,
@@ -64,13 +64,13 @@ const merchantAds = Record({
     updatedAt: text
 });
 
-// Ads status enum
+// ads status enum
 const adsStatus = Variant({
     active: text,
     inactive: text,
 });
 
-// Ads payload
+// ads payload
 const AdsPayload = Record({
     tokenType: Principal,
     TokenAmount: nat64,
@@ -78,18 +78,18 @@ const AdsPayload = Record({
     status: text,
 });
 
-// Balance struct
+//balance struct
 const balance = Record({
     available: nat64,
     locked: nat64,
 });
 
-// Wallet struct
+//wallet struct
 const wallet = Record({
     owner: Principal,
 });
 
-// Dispute status enum
+//dispute status enum
 const disputeStatus = Variant({
     none: text,
     pending: text,
@@ -97,7 +97,7 @@ const disputeStatus = Variant({
     rejected: text,
 });
 
-// Order struct
+//order struct
 const Order = Record({
     id: text,
     buyer: Principal,
@@ -105,9 +105,10 @@ const Order = Record({
     seller: Principal,
     dispute: text,
     arbitrator: Principal,
+    amount: nat64,
 });
 
-// Status enum
+// status enum
 const Status = Variant({
     Initated: text,
     Acknowledged: text,
@@ -118,13 +119,13 @@ const Status = Variant({
     cancelled: text,
 });
 
-// User profile payload
+// user profile payload
 const userProfilePayload = Record({
-    name: text,
-    email: text
+    name:text,
+    email:text
 });
 
-// Order payload
+// order payload
 const OrderPayload = Record({
     buyer: Principal,
     seller: Principal,
@@ -133,28 +134,17 @@ const OrderPayload = Record({
     arbitrator: Principal,
 });
 
-// Rating struct
-const Rating = Record({
-    id: text,
-    ratedBy: Principal,
-    ratedEntity: text,
-    rating: nat64,
-    comment: Opt(text),
-    createdAt: text,
-});
-
-// Storage
+// storage
 const userProfileStorage = StableBTreeMap(0, text, userProfile);
-const orderStorage = StableBTreeMap(1, text, Order);
-const merchantAdsStorage = StableBTreeMap(2, text, merchantAds);
-const balanceStorage = StableBTreeMap(3, text, balance);
-const ratingStorage = StableBTreeMap(4, text, Rating);
+const orderStorage = StableBTreeMap(1,text, Order);
+const merchantAdsStorage = StableBTreeMap(2,text, merchantAds);
+const balanceStorage = StableBTreeMap(3,text, balance);
 
-// Timeout
+// time out
 const TIMEOUT_PERIOD = 300000000000n;
 
 export default Canister({
-    // Create user profile
+    // create user profile
     createUserProfile: update(
         [userProfilePayload],
         Result(userProfile, text),
@@ -177,7 +167,7 @@ export default Canister({
             }
         }
     ),
-    // Get user profile by id
+    // get user profile by id
     getUserProfileById: query(
         [text], 
         Result(userProfile, text), 
@@ -192,7 +182,7 @@ export default Canister({
         }
     ),
 
-    // Function to get user profile by owner principal using filter
+    //function to get user profile by owner principal using filter
     getUserProfileByOwner: query([], Result(userProfile, text), () => {
         const userProfiles = userProfileStorage.values().filter((user) => {
             return user.owner.toText() === ic.caller().toText();
@@ -205,7 +195,7 @@ export default Canister({
         return Ok(userProfiles[0]);
     }),
 
-    // Get user by principal
+    //get user by principal
     getUserProfileByPrincipal: query([Principal], Result(userProfile, text), (owner) => {
         const userProfiles = userProfileStorage.values().filter((user) => {
             return user.owner.toText() === owner.toText();
@@ -218,7 +208,7 @@ export default Canister({
         return Ok(userProfiles[0]);
     }),
 
-    // Register user as a merchant using id
+    // register user as a merchant using id
     registerMerchant: update(
         [text],
         Result(userProfile, text),
@@ -239,7 +229,7 @@ export default Canister({
         }
     ),
 
-    // Create merchant ads if merchant status is active using their id
+    //create merchant ads if merchant status is active using their id
     createMerchantAds: update(
         [text, AdsPayload],
         Result(merchantAds, text),
@@ -277,7 +267,7 @@ export default Canister({
         }
     ),
     
-    // Get ads by id
+    // get ads by id
     getAdsById: query(
         [text],
         Result(merchantAds, text),
@@ -291,7 +281,7 @@ export default Canister({
             return Ok(adsOpt.Some);
         }
     ),
-    // Get all ads
+    // get all ads
     getAllAds: query(
         [],
         Result(Vec(merchantAds), text),
@@ -299,7 +289,7 @@ export default Canister({
             return Ok(merchantAdsStorage.values());
         }
     ),
-    // Get all active ads
+    // get all active ads
     getAllActiveAds: query(
         [],
         Result(Vec(merchantAds), text),
@@ -311,7 +301,7 @@ export default Canister({
             return Ok(ads);
         }
     ),
-    // Get all inactive ads
+    // get all inactive ads
     getAllInactiveAds: query(
         [],
         Result(Vec(merchantAds), text),
@@ -323,7 +313,7 @@ export default Canister({
             return Ok(ads);
         }
     ),
-    // Get all suspended ads
+    // get all suspended ads
     getAllSuspendedAds: query(
         [],
         Result(Vec(merchantAds), text),
@@ -335,7 +325,7 @@ export default Canister({
             return Ok(ads);
         }
     ),
-    // Get all ads by owner
+    // get all ads by owner
     getAllAdsByOwner: query(
         [Principal],
         Result(Vec(merchantAds), text),
@@ -347,17 +337,34 @@ export default Canister({
             return Ok(ads);
         }
     ),
-    // Create order 
+    // create order 
     createOrder: update(
-        [OrderPayload],
+        [OrderPayload, nat64], // Add amount as a parameter
         Result(Order, text),
-        (payload) => {
+        (payload, amount) => {
             try {
                 const orderId = uuid();
                 const order = {
                     ...payload,
                     id: orderId,
+                    amount: amount, // Store the amount in the order
                 };
+
+                // Lock the seller's funds
+                const sellerBalanceOpt = balanceStorage.get(order.seller);
+                if ("None" in sellerBalanceOpt) {
+                    return Err("Seller balance not found.");
+                }
+
+                const sellerBalance = sellerBalanceOpt.Some;
+                if (sellerBalance.available < amount) {
+                    return Err("Insufficient funds.");
+                }
+
+                sellerBalance.available -= amount;
+                sellerBalance.locked += amount;
+                balanceStorage.insert(order.seller, sellerBalance);
+
                 orderStorage.insert(orderId, order);
                 return Ok(order);
             } catch (error) {
@@ -365,7 +372,7 @@ export default Canister({
             }
         }
     ),
-    // Acknowledge order
+    //acknowledge order
     acknowledgeOrder: update(
         [text],
         Result(Order, text),
@@ -389,7 +396,7 @@ export default Canister({
             return Ok(order);
         }
     ),
-    // Cancel order
+    //cancel order
     cancelOrder: update(
         [text],
         Result(Order, text),
@@ -413,7 +420,7 @@ export default Canister({
             return Ok(order);
         }
     ),
-    // Change order status to awaiting payment
+    // change order status to awaiting payment
     awaitingPayment: update(
         [text],
         Result(Order, text),
@@ -437,7 +444,7 @@ export default Canister({
             return Ok(order);
         }
     ),
-    // Change order status to awaiting release
+    // change order status to awaiting release
     awaitingRelease: update(
         [text],
         Result(Order, text),
@@ -461,7 +468,7 @@ export default Canister({
             return Ok(order);
         }
     ),
-    // Change order status to completed
+    // change order status to completed
     completeOrder: update(
         [text],
         Result(Order, text),
@@ -481,11 +488,21 @@ export default Canister({
                 return Err("Order status is not Awaiting_release.");
             }
     
+            // Release the locked funds
+            const sellerBalanceOpt = balanceStorage.get(order.seller);
+            if ("None" in sellerBalanceOpt) {
+                return Err("Seller balance not found.");
+            }
+
+            const sellerBalance = sellerBalanceOpt.Some;
+            sellerBalance.locked -= order.amount;
+            balanceStorage.insert(order.seller, sellerBalance);
+    
             orderStorage.insert(orderId, { ...order, status: "Completed" });
             return Ok(order);
         }
     ),
-    // Dispute order
+    // dispute order
     disputeOrder: update(
         [text],
         Result(Order, text),
@@ -509,7 +526,7 @@ export default Canister({
             return Ok(order);
         }
     ),
-    // Resolve dispute in favor of buyer
+    // resolve dispute in favor of buyer
     resolveDispute: update(
         [text],
         Result(Order, text),
@@ -529,11 +546,21 @@ export default Canister({
                 return Err("Order status is not Disputed.");
             }
     
+            // Release the locked funds to the buyer
+            const sellerBalanceOpt = balanceStorage.get(order.seller);
+            if ("None" in sellerBalanceOpt) {
+                return Err("Seller balance not found.");
+            }
+
+            const sellerBalance = sellerBalanceOpt.Some;
+            sellerBalance.locked -= order.amount;
+            balanceStorage.insert(order.seller, sellerBalance);
+    
             orderStorage.insert(orderId, { ...order, status: "Completed" });
             return Ok(order);
         }
     ),
-    // Reject dispute in favor of seller
+    // reject dispute in favor of seller
     rejectDispute: update(
         [text],
         Result(Order, text),
@@ -553,48 +580,19 @@ export default Canister({
                 return Err("Order status is not Disputed.");
             }
     
+            // Release the locked funds back to the seller
+            const sellerBalanceOpt = balanceStorage.get(order.seller);
+            if ("None" in sellerBalanceOpt) {
+                return Err("Seller balance not found.");
+            }
+
+            const sellerBalance = sellerBalanceOpt.Some;
+            sellerBalance.locked -= order.amount;
+            sellerBalance.available += order.amount;
+            balanceStorage.insert(order.seller, sellerBalance);
+    
             orderStorage.insert(orderId, { ...order, status: "Completed" });
             return Ok(order);
-        }
-    ),
-
-    // Create rating
-    createRating: update(
-        [Principal, nat64, Opt(text)],
-        Result(Rating, text),
-        (ratedEntity, rating, comment) => {
-            try {
-                const ratingId = uuid();
-                const newRating = {
-                    id: ratingId,
-                    ratedBy: ic.caller(),
-                    ratedEntity: ratedEntity.toText(),
-                    rating: rating,
-                    comment: comment,
-                    createdAt: new Date().toISOString(),
-                };
-                ratingStorage.insert(ratingId, newRating);
-                return Ok(newRating);
-            } catch (error) {
-                return Err("Failed to create rating.");
-            }
-        }
-    ),
-
-    // Get ratings by entity
-    getRatingsByEntity: query(
-        [Principal],
-        Result(Vec(Rating), text),
-        (ratedEntity) => {
-            const ratings = ratingStorage.values().filter((rating) => {
-                return rating.ratedEntity === ratedEntity.toText();
-            });
-
-            if (ratings.length === 0) {
-                return Err(`No ratings found for entity ${ratedEntity.toText()}.`);
-            }
-
-            return Ok(ratings);
         }
     ),
 });
