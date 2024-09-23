@@ -1,15 +1,25 @@
 service: () -> {
+    acknowledgeOrder: (text) -> (variant {Ok:record {id:text; arbitrator:principal; status:text; seller:principal; buyer:principal; dispute:text}; Err:text});
+    awaitingPayment: (text) -> (variant {Ok:record {id:text; arbitrator:principal; status:text; seller:principal; buyer:principal; dispute:text}; Err:text});
+    awaitingRelease: (text) -> (variant {Ok:record {id:text; arbitrator:principal; status:text; seller:principal; buyer:principal; dispute:text}; Err:text});
+    cancelOrder: (text) -> (variant {Ok:record {id:text; arbitrator:principal; status:text; seller:principal; buyer:principal; dispute:text}; Err:text});
+    completeOrder: (text) -> (variant {Ok:record {id:text; arbitrator:principal; status:text; seller:principal; buyer:principal; dispute:text}; Err:text});
     createMerchantAds: (text, record {status:text; rate:nat64; TokenAmount:nat64; tokenType:principal}) -> (variant {Ok:record {id:text; status:text; owner:principal; createdAt:text; updatedAt:text; tokenType:principal}; Err:text});
     createOrder: (record {arbitrator:principal; status:text; seller:principal; buyer:principal; dispute:text}) -> (variant {Ok:record {id:text; arbitrator:principal; status:text; seller:principal; buyer:principal; dispute:text}; Err:text});
+    createRating: (principal, nat64, opt text) -> (variant {Ok:record {id:text; createdAt:text; ratedBy:principal; comment:opt text; rating:nat64; ratedEntity:text}; Err:text});
     createUserProfile: (record {name:text; email:text}) -> (variant {Ok:record {id:text; merchantStatus:text; owner:principal; name:text; joinedAt:text; email:text; userStatus:text}; Err:text});
+    disputeOrder: (text) -> (variant {Ok:record {id:text; arbitrator:principal; status:text; seller:principal; buyer:principal; dispute:text}; Err:text});
     getAdsById: (text) -> (variant {Ok:record {id:text; status:text; owner:principal; createdAt:text; updatedAt:text; tokenType:principal}; Err:text}) query;
     getAllActiveAds: () -> (variant {Ok:vec record {id:text; status:text; owner:principal; createdAt:text; updatedAt:text; tokenType:principal}; Err:text}) query;
     getAllAds: () -> (variant {Ok:vec record {id:text; status:text; owner:principal; createdAt:text; updatedAt:text; tokenType:principal}; Err:text}) query;
     getAllAdsByOwner: (principal) -> (variant {Ok:vec record {id:text; status:text; owner:principal; createdAt:text; updatedAt:text; tokenType:principal}; Err:text}) query;
     getAllInactiveAds: () -> (variant {Ok:vec record {id:text; status:text; owner:principal; createdAt:text; updatedAt:text; tokenType:principal}; Err:text}) query;
     getAllSuspendedAds: () -> (variant {Ok:vec record {id:text; status:text; owner:principal; createdAt:text; updatedAt:text; tokenType:principal}; Err:text}) query;
+    getRatingsByEntity: (principal) -> (variant {Ok:vec record {id:text; createdAt:text; ratedBy:principal; comment:opt text; rating:nat64; ratedEntity:text}; Err:text}) query;
     getUserProfileById: (text) -> (variant {Ok:record {id:text; merchantStatus:text; owner:principal; name:text; joinedAt:text; email:text; userStatus:text}; Err:text}) query;
     getUserProfileByOwner: () -> (variant {Ok:record {id:text; merchantStatus:text; owner:principal; name:text; joinedAt:text; email:text; userStatus:text}; Err:text}) query;
     getUserProfileByPrincipal: (principal) -> (variant {Ok:record {id:text; merchantStatus:text; owner:principal; name:text; joinedAt:text; email:text; userStatus:text}; Err:text}) query;
     registerMerchant: (text) -> (variant {Ok:record {id:text; merchantStatus:text; owner:principal; name:text; joinedAt:text; email:text; userStatus:text}; Err:text});
+    rejectDispute: (text) -> (variant {Ok:record {id:text; arbitrator:principal; status:text; seller:principal; buyer:principal; dispute:text}; Err:text});
+    resolveDispute: (text) -> (variant {Ok:record {id:text; arbitrator:principal; status:text; seller:principal; buyer:principal; dispute:text}; Err:text});
 }
