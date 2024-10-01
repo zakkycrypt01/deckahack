@@ -1,5 +1,6 @@
+import { IdentityKitProvider, ConnectWallet } from "@nfid/identitykit/react"
 import { useState } from 'react'
-import { Eye, EyeOff } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 
 export default function SignUpPage() {
   const [formData, setFormData] = useState({
@@ -8,7 +9,7 @@ export default function SignUpPage() {
     address: '',
   })
   const [errors, setErrors] = useState({})
-  const [showPassword, setShowPassword] = useState(false)
+  const [connectedAccount, setConnectedAccount] = useState(null)
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -23,6 +24,7 @@ export default function SignUpPage() {
     if (!formData.name.trim()) newErrors.name = 'Name is required'
     if (!formData.email.trim()) newErrors.email = 'Email is required'
     else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Email is invalid'
+    return newErrors
   }
 
   const handleSubmit = (e) => {
@@ -30,11 +32,19 @@ export default function SignUpPage() {
     const newErrors = validateForm()
     if (Object.keys(newErrors).length === 0) {
       console.log('Form submitted:', formData)
-      setFormData({ name: '', email: '', password: '', confirmPassword: '' })
+      setFormData({ name: '', email: '', address: '' })
     } else {
       setErrors(newErrors)
     }
   }
+
+  const navigate = useNavigate()
+  const handleClickProfile = () => {
+    navigate('/profile')
+  }
+
+  // Callback when wallet is connected
+  
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 sm:px-6 lg:px-8">
@@ -47,9 +57,7 @@ export default function SignUpPage() {
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">
             <div className="mb-4">
-              <label htmlFor="name" className="sr-only">
-                Full Name
-              </label>
+              <label htmlFor="name" className="sr-only">Full Name</label>
               <input
                 id="name"
                 name="name"
@@ -63,9 +71,7 @@ export default function SignUpPage() {
               {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
             </div>
             <div className="mb-4">
-              <label htmlFor="email-address" className="sr-only">
-                Email address
-              </label>
+              <label htmlFor="email-address" className="sr-only">Email address</label>
               <input
                 id="email-address"
                 name="email"
@@ -79,31 +85,35 @@ export default function SignUpPage() {
               />
               {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
             </div>
-            <div>
-            <button
-              type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out"
+            <div className="py-4 px-4">
+            <IdentityKitProvider
+              onConnectFailure={(e) => {
+                console.error(e)
+              }}
+              onConnectSuccess={() => {
+                handleWalletConnect()
+              }}
+              onDisconnect={() => {
+                setConnectedAccount(null)
+              }}
             >
-              Connect Wallet
-            </button>
-          </div>
+              <ConnectWallet />
+            </IdentityKitProvider>
+            </div>
             <div>
-            <button
-              type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out"
-            >
-              Create Account
-            </button>
+              <button
+                type="submit"
+                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out"
+                onClick={handleClickProfile}
+              >
+                Create Account
+              </button>
+            </div>
           </div>
-          </div>
-
-          
         </form>
         <p className="mt-2 text-center text-sm text-gray-600">
           Already have an account?{' '}
-          <a href="#" className="font-medium text-indigo-600 hover:text-indigo-500">
-            Sign in
-          </a>
+          <a href="#" className="font-medium text-indigo-600 hover:text-indigo-500">Sign in</a>
         </p>
       </div>
     </div>

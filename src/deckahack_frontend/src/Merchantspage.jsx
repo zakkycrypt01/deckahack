@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { FaChevronLeft, FaFilter, FaUser } from 'react-icons/fa'
 
 const buyMerchantData = [
@@ -21,11 +22,22 @@ export default function Merchantspage() {
   const [activeTab, setActiveTab] = useState('buy')
   const [selectedCurrency, setSelectedCurrency] = useState('BTC')
 
+  const navigate = useNavigate() 
+  const handleBack = () => {
+    navigate(-1)
+  }
+  const handleBuy = () => {    
+    navigate('/buy')
+  }
+  const handleSell = () => {
+    navigate('/sell')
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
       <header className="bg-white p-4 flex items-center justify-between">
         <button className="text-gray-600">
-          <FaChevronLeft size={24} />
+          <FaChevronLeft size={24} onClick={handleBack}/>
         </button>
         <h1 className="text-xl font-semibold">Merchants</h1>
         <div className="w-6"></div>
@@ -96,7 +108,8 @@ export default function Merchantspage() {
                   <span>{merchant.completion}%</span>
                   <span>{merchant.responseTime} mins</span>
                 </div>
-                <button className={`px-4 py-2 ${activeTab === 'buy' ? 'bg-blue-500' : 'bg-blue-500'} text-white rounded text-sm`}>
+                <button className={`px-4 py-2 ${activeTab === 'buy' ? 'bg-blue-500' : 'bg-blue-500'} text-white rounded text-sm`} 
+                onClick={activeTab === 'buy' ? handleBuy : handleSell}                >
                   {activeTab === 'buy' ? 'Buy' : 'Sell'}
                 </button>
               </div>

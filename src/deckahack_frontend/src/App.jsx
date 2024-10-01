@@ -29,6 +29,9 @@
 // }
 
 // export default App;
+import "@nfid/identitykit/react/styles.css"
+ 
+import { IdentityKitProvider } from "@nfid/identitykit/react"
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import SignUpPage from './Signuppage';
@@ -36,18 +39,25 @@ import Merchantspage from './Merchantspage';
 import Profilepage from './Profilepage';
 import Paymentpage from './PaymentPage';
 import Welcome from './Welcome';
+import SellPage from "./SellPage";
+import BuyPage from "./BuyPage";
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Welcome />} />
-        <Route path="/signup" element={<SignUpPage />} />
-        <Route path="/merchants" element={<Merchantspage />} />
-        <Route path="/profile" element={<Profilepage />} />
-        <Route path="/payment" element={<Paymentpage />} />
-      </Routes>
+    <IdentityKitProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Welcome />} />
+          <Route path="/signup" element={<SignUpPage />} />
+          <Route path="/merchants" element={<Merchantspage />} />
+          <Route path="/profile" element={<Profilepage />} />
+          <Route path="/payment" element={<Paymentpage />} />
+          <Route path="/sell" element={<SellPage />} />
+          <Route path="/buy" element={<BuyPage />} />
+        </Routes>
     </BrowserRouter>
+    </IdentityKitProvider>
+    
   );
 }
 

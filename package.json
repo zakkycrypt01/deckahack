@@ -17,6 +17,14 @@
     "src/deckahack_frontend"
   ],
   "dependencies": {
+    "@dfinity/agent": "^2.1.1",
+    "@dfinity/auth-client": "^2.1.1",
+    "@dfinity/candid": "^2.1.1",
+    "@dfinity/identity": "^2.1.1",
+    "@dfinity/ledger-icp": "^2.5.0",
+    "@dfinity/principal": "^2.1.1",
+    "@dfinity/utils": "^2.5.0",
+    "@nfid/identitykit": "^0.0.0-alpha.17",
     "@radix-ui/react-slot": "^1.1.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",

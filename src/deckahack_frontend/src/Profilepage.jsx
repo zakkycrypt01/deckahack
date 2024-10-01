@@ -1,7 +1,16 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FaUser, FaShieldAlt, FaWallet, FaLock, FaDollarSign, FaGlobe, FaQuestionCircle, FaHome, FaBriefcase, FaChartBar, FaUserCircle, FaChevronRight } from 'react-icons/fa';
 
 export default function Component() {
+  const navigate = useNavigate();
+  const handleClickSignOut = () => {
+    navigate('/signup');
+  };
+  const handleClickMerchants = () => {
+    navigate('/merchants');
+  };
+
   const profileItems = [
     { icon: <FaUser size={18} />, title: 'Account Profile', subtitle: 'Your account profile' },
     { icon: <FaShieldAlt size={18} />, title: 'Account Verification', subtitle: 'Not Verified', alert: true },
@@ -13,12 +22,14 @@ export default function Component() {
   ];
 
   const navItems = [
-    { icon: <FaHome size={20} />, label: 'Home' },
+    { icon: <FaHome size={20} onClick={handleClickMerchants}/>, label: 'Buy&Sell' },
     { icon: <FaBriefcase size={20} />, label: 'Portfolio' },
     { icon: 'add', label: '' },
     { icon: <FaChartBar size={20} />, label: 'Markets' },
     { icon: <FaUserCircle size={20} />, label: 'Profile' },
   ];
+
+  
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#f3f4f6' }}>
@@ -61,7 +72,7 @@ export default function Component() {
           </div>
         </div>
         <footer style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', marginTop: '24px' }}>
-          <button style={{ color: '#3b82f6', background: 'none', border: 'none', cursor: 'pointer' }}>Sign Out</button>
+          <button style={{ color: '#3b82f6', background: 'none', border: 'none', cursor: 'pointer' }} onClick={handleClickSignOut}>Sign Out</button>
           <p style={{ fontSize: '12px', color: '#6b7280' }}>Version 1.0</p>
         </footer>
       </div>

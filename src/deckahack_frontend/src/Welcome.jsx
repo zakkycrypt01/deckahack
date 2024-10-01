@@ -1,7 +1,6 @@
 import React from 'react'
 import { FaArrowRight, FaCheck } from 'react-icons/fa'
 import {useNavigate} from 'react-router-dom'
-import Signuppage from './Signuppage'
 
 function Welcome() {
   const navigate = useNavigate();
