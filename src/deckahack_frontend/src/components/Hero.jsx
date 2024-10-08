@@ -1,4 +1,5 @@
 import React from "react";
+import HeroImage from '../assets/images/hero-image.png';
 import { FaBolt, FaShield, FaUser } from "react-icons/fa6";
 
 const HeroSection = () => {
@@ -31,7 +32,7 @@ const HeroSection = () => {
         {/* Image Section */}
         <div className="lg:w-1/2 mt-10 lg:mt-0">
           <img
-            src="/escrow-hero-image.svg"
+            src={HeroImage}
             alt="Secure transactions"
             className="w-full max-w-md mx-auto shadow-lg rounded-lg"
           />

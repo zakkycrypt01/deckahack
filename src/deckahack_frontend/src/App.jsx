@@ -42,11 +42,13 @@ import { WalletProvider } from './components/WalletContext';
 import Dashboard from './components/Dashboard';
 import Features from './components/homeContent/Features';
 import PriceTrackerHome from './components/homeContent/PriceTrackerHome';
-import NewsletterPage from './components/NewsLetter';
-import MerchantPage from './components/MerchantPage';
+import MerchantPage from './components/Pages/MerchantPage';
 import PaymentPage from './components/Pages/PaymentPage';
 import SignUpPage from './components/Pages/SignUp';
 import BuyPage from './components/Pages/BuyPage';
+import TransactionDetails from './components/Pages/TransactinDetails';
+import SellPage from './components/Pages/SellPage';
+import TransactionPage from './components/Pages/TransactionPage';
 
 function App() {
   return (
@@ -71,6 +73,9 @@ function App() {
           <Route path="/pay" element={<PaymentPage />} />
           <Route path="/sign-up" element={<SignUpPage />} />
           <Route path="/buy" element={<BuyPage />} />
+          <Route path="/sell" element={<SellPage />} />
+          <Route path="/transaction-details" element={<TransactionDetails />} />
+          <Route path="/transaction" element={<TransactionPage />} />
         </Routes>
         <Footer />
       </BrowserRouter>
