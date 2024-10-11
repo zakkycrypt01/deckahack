@@ -1,10 +1,13 @@
-import { useState } from 'react'
-import { FaDollarSign, FaChevronDown, FaChevronUp, FaExclamationCircle } from 'react-icons/fa'
-import { Switch } from 'daisyui'
+// src/components/TransactionDetails.js
+import React, { useState } from 'react';
+import { FaDollarSign, FaChevronDown, FaChevronUp, FaExclamationCircle } from 'react-icons/fa';
+import { Switch } from 'daisyui';
+import { useNavigate } from 'react-router-dom';
 
 const TransactionDetails = () => {
-  const [expanded, setExpanded] = useState(false)
-  const [payWithToken, setPayWithToken] = useState(false)
+  const [expanded, setExpanded] = useState(false);
+  const [payWithToken, setPayWithToken] = useState(false);
+  const navigate = useNavigate();
 
   const buyData = {
     price: 10577.49,
@@ -17,7 +20,7 @@ const TransactionDetails = () => {
     reviews: 787,
     transactions: 480,
     status: "Verified"
-  }
+  };
 
   const sellData = {
     price: 10550.00,
@@ -30,10 +33,21 @@ const TransactionDetails = () => {
     reviews: 652,
     transactions: 395,
     status: "Verified"
-  }
+  };
+
+  // Handler to navigate to the transaction page with buy data
+  const handleInitiateBuy = () => {
+    navigate('/transaction', { state: { transactionData: buyData, type: 'buy' } });
+  };
+
+  // Handler to navigate to the transaction page with sell data
+  const handleInitiateSell = () => {
+    navigate('/transaction', { state: { transactionData: sellData, type: 'sell' } });
+  };
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100">
+      {/* Header */}
       <header className="border-b border-gray-800 p-4">
         <div className="container mx-auto flex justify-between items-center">
           <h1 className="text-2xl font-bold">BITTEAM</h1>
@@ -61,11 +75,16 @@ const TransactionDetails = () => {
           </div>
         </div>
       </header>
+
+      {/* Main Content */}
       <main className="container mx-auto p-4">
-        <div className="tabs">
+        {/* Tabs */}
+        <div className="tabs mb-4">
           <a className="tab tab-lifted" href="#buy">Buy</a>
           <a className="tab tab-lifted" href="#sell">Sell</a>
         </div>
+
+        {/* Buy Section */}
         <div id="buy" className="mt-4">
           <div className="card bg-gray-800 text-gray-100">
             <div className="card-body">
@@ -80,24 +99,42 @@ const TransactionDetails = () => {
                 <div className="flex space-x-4">
                   <div className="relative flex-1">
                     <label className="label">You're sending</label>
-                    <input type="text" placeholder="1,000" className="input input-bordered bg-gray-700 text-gray-100 pl-8" />
+                    <input
+                      type="text"
+                      placeholder="1,000"
+                      className="input input-bordered bg-gray-700 text-gray-100 pl-8"
+                    />
                     <FaDollarSign className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400" />
                   </div>
                   <div className="relative flex-1">
                     <label className="label">You're getting</label>
-                    <input type="text" placeholder="0.15" className="input input-bordered bg-gray-700 text-gray-100 pl-8" />
+                    <input
+                      type="text"
+                      placeholder="0.15"
+                      className="input input-bordered bg-gray-700 text-gray-100 pl-8"
+                    />
                     <span className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400">₿</span>
                   </div>
                 </div>
               </div>
               <div className="form-control flex items-center space-x-2 mt-4">
-                <Switch checked={payWithToken} onChange={() => setPayWithToken(!payWithToken)} />
+                <Switch
+                  checked={payWithToken}
+                  onChange={() => setPayWithToken(!payWithToken)}
+                />
                 <label>Payment by BTT token</label>
               </div>
-              <button className="btn btn-primary w-full mt-4">Send a transaction request</button>
+              <button
+                className="btn btn-primary w-full mt-4"
+                onClick={handleInitiateBuy}
+              >
+                Send a transaction request
+              </button>
             </div>
           </div>
         </div>
+
+        {/* Sell Section */}
         <div id="sell" className="mt-4">
           <div className="card bg-gray-800 text-gray-100">
             <div className="card-body">
@@ -107,17 +144,25 @@ const TransactionDetails = () => {
               <p className="text-gray-400">
                 User {sellData.buyer} buys BTC with a limit of {sellData.limit}
               </p>
-              <button className="btn btn-primary w-full mt-4">Initiate sale request</button>
+              <button
+                className="btn btn-primary w-full mt-4"
+                onClick={handleInitiateSell}
+              >
+                Initiate sale request
+              </button>
             </div>
           </div>
         </div>
+
+        {/* Expandable Section for Additional Info */}
         <div className="mt-4">
           <div className="card bg-gray-800 text-gray-100">
-            <div className="card-header cursor-pointer" onClick={() => setExpanded(!expanded)}>
-              <div className="flex justify-between items-center">
-                <h3>Where to store BTT tokens?</h3>
-                {expanded ? <FaChevronUp className="text-gray-400" /> : <FaChevronDown className="text-gray-400" />}
-              </div>
+            <div
+              className="card-header cursor-pointer flex justify-between items-center"
+              onClick={() => setExpanded(!expanded)}
+            >
+              <h3>Where to store BTT tokens?</h3>
+              {expanded ? <FaChevronUp className="text-gray-400" /> : <FaChevronDown className="text-gray-400" />}
             </div>
             {expanded && (
               <div className="card-body">
@@ -137,4 +182,4 @@ const TransactionDetails = () => {
   )
 }
 
-export default TransactionDetails
+export default TransactionDetails;

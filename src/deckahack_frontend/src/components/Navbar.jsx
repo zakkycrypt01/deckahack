@@ -3,6 +3,8 @@ import { AuthNavItems, NavItems } from '../data/data';
 import { FaBars, FaMixer } from 'react-icons/fa6';
 import { useWallet } from './WalletContext';
 import { useNavigate } from 'react-router-dom';
+import { IdentityKitProvider, IdentityKitTheme,ConnectWalletButton } from '@nfid/identitykit/react';
+import { NFIDW, IdentityKitAuthType } from '@nfid/identitykit';
 
 const Navbar = () => {
   const [toggle, setToggle] = useState(false);

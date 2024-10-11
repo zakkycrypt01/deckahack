@@ -74,7 +74,7 @@ function App() {
           <Route path="/sign-up" element={<SignUpPage />} />
           <Route path="/buy" element={<BuyPage />} />
           <Route path="/sell" element={<SellPage />} />
-          <Route path="/transaction-details" element={<TransactionDetails />} />
+          <Route path="/transaction-detail" element={<TransactionDetails />} />
           <Route path="/transaction" element={<TransactionPage />} />
         </Routes>
         <Footer />
