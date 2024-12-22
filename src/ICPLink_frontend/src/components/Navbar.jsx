@@ -1,25 +1,25 @@
 import { useState } from 'react';
 import { AuthNavItems, NavItems } from '../data/data';
 import { FaBars, FaMixer } from 'react-icons/fa6';
-import { useWallet } from './WalletContext';
 import { useNavigate } from 'react-router-dom';
-import { IdentityKitProvider, IdentityKitTheme,ConnectWalletButton } from '@nfid/identitykit/react';
-import { NFIDW, IdentityKitAuthType } from '@nfid/identitykit';
+import { useAuthClient } from "@dfinity/use-auth-client";
 
 const Navbar = () => {
   const [toggle, setToggle] = useState(false);
-  const { walletConnected, toggleWalletConnection } = useWallet();
   const navigate = useNavigate();
+  const { isAuthenticated, login, logout, authClient } = useAuthClient();
+  if (isAuthenticated && authClient) {
+    const principal = authClient.getIdentity().getPrincipal();
+    console.log("User's principal:", principal.toString());
+  }
 
-  const handleWalletConnect = () => {
-    if (walletConnected) {
-      // If wallet is connected, disconnect it
-      toggleWalletConnection(); // This will update the state and localStorage
-      navigate('/')
+  const handleAuthentication = async () => {
+    if (isAuthenticated) {
+      await logout();
+      navigate('/');
     } else {
-      // If wallet is not connected, connect it and navigate
-      toggleWalletConnection(); // This simulates a wallet connection
-      navigate('/profile'); // Redirect to the profile page
+      await login();
+      navigate('/profile');
     }
   };
 
@@ -29,33 +29,33 @@ const Navbar = () => {
       
       <nav>
         <ul className="list-none hidden text- sm:flex flex-row gap-7">
-          {walletConnected 
-          ? AuthNavItems.map((item) => (
-            <li key={item.id}>
-              <a
-                href={item.url}
-                className={`${
-                  item.url === window.location.pathname &&
-                  "text-primary border-b-2 border-rounded py-1 border-primary"
-                }`}
-              >
-                {item.title}
-              </a>
-            </li>
-          ))
-          : NavItems.map((item) => (
-            <li key={item.id}>
-              <a
-                href={item.url}
-                className={`${
-                  item.url === window.location.pathname &&
-                  "text-primary border-b-2 border-rounded py-1 border-primary"
-                }`}
-              >
-                {item.title}
-              </a>
-            </li>
-          ))
+          {isAuthenticated 
+            ? AuthNavItems.map((item) => (
+              <li key={item.id}>
+                <a
+                  href={item.url}
+                  className={`${
+                    item.url === window.location.pathname &&
+                    "text-primary border-b-2 border-rounded py-1 border-primary"
+                  }`}
+                >
+                  {item.title}
+                </a>
+              </li>
+            ))
+            : NavItems.map((item) => (
+              <li key={item.id}>
+                <a
+                  href={item.url}
+                  className={`${
+                    item.url === window.location.pathname &&
+                    "text-primary border-b-2 border-rounded py-1 border-primary"
+                  }`}
+                >
+                  {item.title}
+                </a>
+              </li>
+            ))
           }
         </ul>
 
@@ -75,53 +75,49 @@ const Navbar = () => {
             } p-6 bg-base-200 absolute top-20 right-0 mx-4 my-2 min-w-[140px] z-10 rounded-xl text-white`}
           >
             <ul className="list-none flex justify-center items-start flex-1 flex-col gap-4">
-            {walletConnected 
-          ? AuthNavItems.map((item) => (
-            <li key={item.id}>
-              <a
-                href={item.url}
-                className={`${
-                  item.url === window.location.pathname &&
-                  "text-primary border-b-2 border-rounded py-1 border-primary"
-                }`}
-              >
-                {item.title}
-              </a>
-            </li>
-          ))
-          : NavItems.map((item) => (
-            <li key={item.id}>
-              <a
-                href={item.url}
-                className={`${
-                  item.url === window.location.pathname &&
-                  "text-primary border-b-2 border-rounded py-1 border-primary"
-                }`}
-              >
-                {item.title}
-              </a>
-            </li>
-          ))
-          }
+            {isAuthenticated 
+              ? AuthNavItems.map((item) => (
+                <li key={item.id}>
+                  <a
+                    href={item.url}
+                    className={`${
+                      item.url === window.location.pathname &&
+                      "text-primary border-b-2 border-rounded py-1 border-primary"
+                    }`}
+                  >
+                    {item.title}
+                  </a>
+                </li>
+              ))
+              : NavItems.map((item) => (
+                <li key={item.id}>
+                  <a
+                    href={item.url}
+                    className={`${
+                      item.url === window.location.pathname &&
+                      "text-primary border-b-2 border-rounded py-1 border-primary"
+                    }`}
+                  >
+                    {item.title}
+                  </a>
+                </li>
+              ))
+            }
             </ul>
           </div>
         </div>
       </nav>
 
       {/* Connect Wallet / Wallet Connected Button */}
-      <div onClick={handleWalletConnect}>
-        {walletConnected ? (
-          <a href='/sign-out'>
-            <button className="btn btn-secondary">Wallet Connected</button>
-          </a>
+      <div onClick={handleAuthentication}>
+        {isAuthenticated ? (
+          <button className="btn btn-secondary">
+            {authClient && 'Connected'}
+          </button>
         ) : (
-          <a href='/sign-in'>
-            <button className="btn btn-secondary">Connect Wallet</button>
-          </a>
+          <button className="btn btn-secondary">Connect Wallet</button>
         )}
       </div>
-
-
     </div>
   );
 };
