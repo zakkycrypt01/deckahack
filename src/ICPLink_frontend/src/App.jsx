@@ -62,7 +62,7 @@ function App() {
           <div>
             <HeroSection />
             <Features />
-            <PriceTrackerHome />
+            
           </div>  } />
           <Route path="/about" element={<About />} />
           <Route path="/services" element={<Services />} />
