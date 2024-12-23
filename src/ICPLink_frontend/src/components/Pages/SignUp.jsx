@@ -1,6 +1,15 @@
 import { useState } from 'react';
 import { AiFillEye, AiFillEyeInvisible } from 'react-icons/ai';
 
+import { Actor, HttpAgent } from "@dfinity/agent";
+// import { idlFactory } from "../declarations/ICPLink_backend";
+import { useAuthClient } from "@dfinity/use-auth-client";
+
+
+// const agent = new HttpAgent();
+// const canisterId = process.env.CANISTER_ID_INTERNET_IDENTITY;
+// const actor = Actor.createActor(idlFactory, { agent, canisterId });
+
 const SignUpPage = ({ onClose }) => {
   const [formData, setFormData] = useState({
     name: '',
@@ -90,58 +99,18 @@ const SignUpPage = ({ onClose }) => {
                 />
                 {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
               </div>
-              {/* Password Field */}
-              <div className="mb-4 relative">
-                <label htmlFor="password" className="sr-only">
-                  Password
-                </label>
-                <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                  placeholder="Password"
-                  value={formData.password}
-                  onChange={handleChange}
-                />
-                <div
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5 cursor-pointer"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? <AiFillEye /> : <AiFillEyeInvisible />}
-                </div>
-              </div>
-
-              {/* Connect Wallet Button */}
-              <div>
-                <button
-                  type="button"
-                  className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out"
-                >
-                  Connect Wallet
-                </button>
-              </div>
 
               {/* Submit Button */}
               <div>
                 <button
                   type="submit"
-                  className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out"
+                  className="group relative w-full flex justify-center mt-3 py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out"
                 >
                   Create Account
                 </button>
               </div>
             </div>
           </form>
-
-          {/* Sign in Link */}
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Already have an account?{' '}
-            <a href="#" className="font-medium text-indigo-600 hover:text-indigo-500">
-              Sign in
-            </a>
-          </p>
         </div>
       </div>
     </div>
