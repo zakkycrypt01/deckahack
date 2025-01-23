@@ -7,11 +7,16 @@ export const WalletProvider = ({ children }) => {
   const [walletConnected, setWalletConnected] = useState(false);
   const [authClient, setAuthClient] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [principal, setPrincipal] = useState(null);
+  const [principal, setPrincipal] = useState("");
 
   useEffect(() => {
     const initAuthClient = async () => {
-      const client = await AuthClient.create();
+      const client = await AuthClient.create({
+        idleOptions: {
+          disableDefaultIdleCallback: true,
+          idleTimeout: 1000 * 60 * 30 // 30 minutes
+        }
+      });
       setAuthClient(client);
       const isAuthed = await client.isAuthenticated();
       setIsAuthenticated(isAuthed);
@@ -19,8 +24,7 @@ export const WalletProvider = ({ children }) => {
       if (isAuthed) {
         const identity = client.getIdentity();
         const userPrincipal = identity.getPrincipal();
-        setPrincipal(userPrincipal);
-        console.log("User Principal:", userPrincipal.toString());
+        setPrincipal(userPrincipal.toString());
       }
     };
     initAuthClient();
@@ -28,11 +32,7 @@ export const WalletProvider = ({ children }) => {
 
   const login = async () => {
     if (authClient) {
-      const network = process.env.DFX_NETWORK || "local";
-      const internetIdentityUrl = network === "local" 
-        ? `http://localhost:4943/?canisterId=${process.env.CANISTER_ID_INTERNET_IDENTITY}` 
-        : `https://identity.ic0.app`;
-
+      const internetIdentityUrl = `https://identity.ic0.app`;
       await authClient.login({
         identityProvider: internetIdentityUrl,
         onSuccess: () => {
@@ -41,8 +41,8 @@ export const WalletProvider = ({ children }) => {
           
           const identity = authClient.getIdentity();
           const userPrincipal = identity.getPrincipal();
-          setPrincipal(userPrincipal);
-          console.log("User Principal:", userPrincipal.toString());
+          setPrincipal(userPrincipal.toString());
+          // console.log("User Principal:", userPrincipal.toString());
         },
       });
     }
@@ -53,12 +53,12 @@ export const WalletProvider = ({ children }) => {
       await authClient.logout();
       setIsAuthenticated(false);
       setWalletConnected(false);
-      setPrincipal(null);
+      setPrincipal("");
     }
   };
 
   return (
-    <WalletContext.Provider value={{ walletConnected, isAuthenticated, login, logout, principal }}>
+    <WalletContext.Provider value={{ walletConnected, isAuthenticated, login, logout, principal, setPrincipal }}>
       {children}
     </WalletContext.Provider>
   );

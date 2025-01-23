@@ -1,23 +1,26 @@
-import { useState } from 'react';
-import { AiFillEye, AiFillEyeInvisible } from 'react-icons/ai';
+import { useEffect, useState } from 'react';
+import { useWallet } from '../WalletContext';
+import { ICPLink_backend } from '../../../../declarations/ICPLink_backend';
 
-import { Actor, HttpAgent } from "@dfinity/agent";
-// import { idlFactory } from "../declarations/ICPLink_backend";
-import { useAuthClient } from "@dfinity/use-auth-client";
-
-
-// const agent = new HttpAgent();
-// const canisterId = process.env.CANISTER_ID_INTERNET_IDENTITY;
-// const actor = Actor.createActor(idlFactory, { agent, canisterId });
 
 const SignUpPage = ({ onClose }) => {
+  const { principal } = useWallet();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     address: '',
   });
   const [errors, setErrors] = useState({});
-  const [showPassword, setShowPassword] = useState(false);
+  const [status, setStatus] = useState(null);
+
+  useEffect(() => {
+    if (principal) {
+      setFormData((prevData) => ({
+        ...prevData,
+        address: principal.toString(), // Set the address to the principal's string value
+      }));
+    }
+  }, [principal]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -35,12 +38,26 @@ const SignUpPage = ({ onClose }) => {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = validateForm();
     if (Object.keys(newErrors).length === 0) {
-      console.log('Form submitted:', formData);
-      setFormData({ name: '', email: '', address: '' });
+      const updatedProfile = {
+        accountType: { Regular: null },
+        email: formData.email,
+        name: formData.name,
+        status: "Active",
+      };
+
+      try {
+        const updateResult = await ICPLink_backend.updateProfile(updatedProfile);
+        console.log('Profile updated successfully:', updateResult);
+        setStatus('Profile updated successfully!');
+        setFormData({ name: '', email: '', address: formData.address });
+      } catch (error) {
+        console.error('Error updating profile:', error);
+        setStatus('Error updating profile. Please try again.');
+      }
     } else {
       setErrors(newErrors);
     }
@@ -49,7 +66,6 @@ const SignUpPage = ({ onClose }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="relative bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
-        {/* Close Button */}
         <button 
           onClick={onClose}
           className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 transition duration-150"
@@ -57,7 +73,6 @@ const SignUpPage = ({ onClose }) => {
           X
         </button>
         
-        {/* Modal Content */}
         <div className="max-w-md w-full space-y-8">
           <div>
             <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
@@ -99,18 +114,32 @@ const SignUpPage = ({ onClose }) => {
                 />
                 {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
               </div>
+              <div className="mb-4">
+                <label htmlFor="address" className="sr-only">
+                  Address
+                </label>
+                <input
+                  id="address"
+                  name="address"
+                  type="text"
+                  readOnly
+                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                  placeholder="Address"
+                  value={formData.address}
+                />
+              </div>
 
-              {/* Submit Button */}
               <div>
                 <button
                   type="submit"
-                  className="group relative w-full flex justify-center mt-3 py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out"
+                  className="group relative w-full flex justify-center mt-4 py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out"
                 >
                   Create Account
                 </button>
               </div>
             </div>
           </form>
+          {status && <p className="text-center text-green-500 mt-4">{status}</p>}
         </div>
       </div>
     </div>

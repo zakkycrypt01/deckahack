@@ -16,7 +16,7 @@ const HeroSection = () => {
             Fast, reliable, and secure. Our escrow service ensures that every transaction is safe and hassle-free.
           </p>
           <div className="flex space-x-4">
-            <a href="/register">
+            <a href="/sign-up">
             <button className="btn btn-primary px-6 py-3 rounded-lg">
               Get Started
             </button>

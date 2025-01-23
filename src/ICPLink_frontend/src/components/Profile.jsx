@@ -1,7 +1,31 @@
 // Import relevant dependencies
-import React from "react";
+import React, { useEffect } from "react";
+import { ICPLink_backend } from "../../../declarations/ICPLink_backend";
 
 const Profile = () => {
+
+  //fetch userdata from backend and console.log it
+  const [userData, setUserData] = React.useState(null);
+
+const fetchUserData = async () => {
+  try {
+    const data = await ICPLink_backend.getOwnProfile();
+    console.log(data);
+    setUserData(data[0]);
+  } catch (error) {
+    console.log('Error fetching user data:', error);
+  }
+};
+
+//set name and email
+useEffect(() => {
+  fetchUserData();
+}, []);
+
+const username = userData?.name || 'Username';
+const useremail = userData?.email || 'email'
+  
+
   return (
     <div className="bg-base-100 text-neutral-content p-8 min-h-screen">
       {/* Profile Information */}
@@ -11,8 +35,8 @@ const Profile = () => {
             <img src="https://via.placeholder.com/150" alt="Profile Avatar" />
           </div>
         </div>
-        <h2 className="text-2xl mt-4">Username</h2>
-        <p className="text-sm text-gray-500">username@example.com</p>
+        <h2 className="text-2xl mt-4">{username}</h2>
+        <p className="text-sm text-gray-500">{useremail}</p>
         <div className="mt-2">
           <span className="text-gray-400">Wallet Address:</span>
           <span className="ml-2 text-gray-300">ckETHxxxx....zzzz</span>
