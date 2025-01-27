@@ -1,29 +1,41 @@
-// Import relevant dependencies
 import React, { useEffect } from "react";
-import { ICPLink_backend } from "../../../declarations/ICPLink_backend";
+import {useWallet} from "./WalletContext";
+import { Principal } from '@dfinity/principal';
+
 
 const Profile = () => {
+  const { principal, newAuthActor } = useWallet();
+const address = principal?.toString() || 'Address';
+console.log('Address:', address, 'Type:', typeof address);
 
-  //fetch userdata from backend and console.log it
-  const [userData, setUserData] = React.useState(null);
+const [userData, setUserData] = React.useState(null);
 
-const fetchUserData = async () => {
+const fetchUserData = React.useCallback(async () => {
   try {
-    const data = await ICPLink_backend.getOwnProfile();
-    console.log(data);
-    setUserData(data[0]);
+    if (newAuthActor && address !== 'Address') {
+      const principalId = Principal.fromText(address);
+      const data = await newAuthActor.getProfileByPrincipal(principalId);
+      console.log(data);
+      setUserData(data[0]);
+    }
   } catch (error) {
     console.log('Error fetching user data:', error);
   }
-};
+}, [newAuthActor, address]);
 
-//set name and email
 useEffect(() => {
   fetchUserData();
-}, []);
+}, [fetchUserData]);
 
 const username = userData?.name || 'Username';
-const useremail = userData?.email || 'email'
+const useremail = userData?.email || 'email';
+
+const truncatePrincipalId = (id) => {
+  if (id.length > 10) {
+    return `${id.slice(0, 5)}...${id.slice(-5)}`;
+  }
+  return id;
+}
   
 
   return (
@@ -39,7 +51,7 @@ const useremail = userData?.email || 'email'
         <p className="text-sm text-gray-500">{useremail}</p>
         <div className="mt-2">
           <span className="text-gray-400">Wallet Address:</span>
-          <span className="ml-2 text-gray-300">ckETHxxxx....zzzz</span>
+          <span className="ml-2 text-gray-300">{truncatePrincipalId(address)}</span>
           <button className="btn btn-sm btn-outline btn-accent ml-2">
             Copy
           </button>

@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useWallet } from '../WalletContext';
-import { ICPLink_backend } from '../../../../declarations/ICPLink_backend';
+import { AuthClient } from "@dfinity/auth-client";
+
+
 
 
 const SignUpPage = ({ onClose }) => {
   const { principal } = useWallet();
+  const { newAuthActor } = useWallet();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -17,7 +20,7 @@ const SignUpPage = ({ onClose }) => {
     if (principal) {
       setFormData((prevData) => ({
         ...prevData,
-        address: principal.toString(), // Set the address to the principal's string value
+        address: principal, // Set the address to the principal's string value
       }));
     }
   }, [principal]);
@@ -47,10 +50,11 @@ const SignUpPage = ({ onClose }) => {
         email: formData.email,
         name: formData.name,
         status: "Active",
+        address: formData.address,
       };
 
       try {
-        const updateResult = await ICPLink_backend.updateProfile(updatedProfile);
+        const updateResult = await newAuthActor.updateProfile(updatedProfile);
         console.log('Profile updated successfully:', updateResult);
         setStatus('Profile updated successfully!');
         setFormData({ name: '', email: '', address: formData.address });

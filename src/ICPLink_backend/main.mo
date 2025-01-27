@@ -7,7 +7,7 @@ import Iter "mo:base/Iter";
 import Time "mo:base/Time";
 import Hash "mo:base/Hash";
 
-actor {
+shared({ caller = initializer }) actor class() {
   type ArbitratorStatus = {
     #Active;
     #Inactive;
