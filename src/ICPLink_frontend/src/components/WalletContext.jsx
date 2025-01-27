@@ -1,10 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { AuthClient } from "@dfinity/auth-client";
+import { useAuthClient } from "@dfinity/use-auth-client";
 import { idlFactory } from '../../../declarations/ICPLink_backend/ICPLink_backend.did.js';
 import { Actor, HttpAgent } from '@dfinity/agent';
+import { authClient,AuthClient } from "@dfinity/auth-client";
+
 
 const WalletContext = createContext();
-
 export const WalletProvider = ({ children }) => {
   const [authClient, setAuthClient] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
