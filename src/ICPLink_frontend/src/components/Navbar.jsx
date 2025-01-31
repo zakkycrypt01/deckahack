@@ -12,6 +12,7 @@ const Navbar = () => {
     const principal = authClient.getIdentity().getPrincipal();
     console.log("User's principal:", principal.toString());
   }
+  
 
   const handleAuthentication = async () => {
     if (isAuthenticated) {

@@ -30,7 +30,7 @@ export const AuthNavItems = [
     {
         id: 2,
         title: 'Dashboard',
-        url: '/dashboard'
+        url: '/merchant'
     },
     {
         id: 3,

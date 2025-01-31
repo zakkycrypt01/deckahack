@@ -1,31 +1,37 @@
-import { useState } from 'react'
-import { FaChevronLeft, FaFilter, FaUser } from 'react-icons/fa'
+import { useState } from 'react';
+import { FaChevronLeft, FaFilter, FaUser } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 
 const buyMerchantData = [
-  { name: 'Crypto Buyer', amount: 20000000.00, volume: 0.012, min: 100000, max: 500000, trades: 150, completion: 98, responseTime: 5 },
+  { name: 'Crypto Buyer', amount: 20000000.0, volume: 0.012, min: 100000, max: 500000, trades: 150, completion: 98, responseTime: 5 },
   { name: 'BTC Enthusiast', amount: 19996989.75, volume: 0.015, min: 50000, max: 1000000, trades: 200, completion: 99, responseTime: 3 },
-  { name: 'Digital Coin Pro', amount: 19996987.95, volume: 0.010, min: 200000, max: 800000, trades: 120, completion: 97, responseTime: 7 },
+  { name: 'Digital Coin Pro', amount: 19996987.95, volume: 0.01, min: 200000, max: 800000, trades: 120, completion: 97, responseTime: 7 },
   { name: 'Crypto Master', amount: 19996999.85, volume: 0.018, min: 150000, max: 600000, trades: 180, completion: 98, responseTime: 4 },
-  { name: 'Bitcoin Baron', amount: 19997900.50, volume: 0.014, min: 75000, max: 750000, trades: 160, completion: 99, responseTime: 6 },
-]
+  { name: 'Bitcoin Baron', amount: 19997900.5, volume: 0.014, min: 75000, max: 750000, trades: 160, completion: 99, responseTime: 6 },
+];
 
 const sellMerchantData = [
-  { name: 'Crypto Seller', price: 19500000.00, volume: 0.020, min: 200000, max: 1000000, trades: 180, completion: 97, responseTime: 6 },
-  { name: 'BTC Trader', price: 19550000.00, volume: 0.018, min: 100000, max: 800000, trades: 220, completion: 99, responseTime: 4 },
-  { name: 'Digital Asset Pro', price: 19480000.00, volume: 0.015, min: 150000, max: 900000, trades: 140, completion: 98, responseTime: 5 },
-  { name: 'Crypto Exchange', price: 19520000.00, volume: 0.022, min: 250000, max: 1200000, trades: 200, completion: 98, responseTime: 3 },
-  { name: 'Bitcoin Merchant', price: 19490000.00, volume: 0.017, min: 180000, max: 950000, trades: 160, completion: 97, responseTime: 7 },
-]
+  { name: 'Crypto Seller', price: 19500000.0, volume: 0.02, min: 200000, max: 1000000, trades: 180, completion: 97, responseTime: 6 },
+  { name: 'BTC Trader', price: 19550000.0, volume: 0.018, min: 100000, max: 800000, trades: 220, completion: 99, responseTime: 4 },
+  { name: 'Digital Asset Pro', price: 19480000.0, volume: 0.015, min: 150000, max: 900000, trades: 140, completion: 98, responseTime: 5 },
+  { name: 'Crypto Exchange', price: 19520000.0, volume: 0.022, min: 250000, max: 1200000, trades: 200, completion: 98, responseTime: 3 },
+  { name: 'Bitcoin Merchant', price: 19490000.0, volume: 0.017, min: 180000, max: 950000, trades: 160, completion: 97, responseTime: 7 },
+];
 
 const MerchantPage = () => {
-  const [activeTab, setActiveTab] = useState('buy')
-  const [selectedCurrency, setSelectedCurrency] = useState('BTC')
-
+  console.log("MerchantPage");
+  const [activeTab, setActiveTab] = useState('buy');
+  const [selectedCurrency, setSelectedCurrency] = useState('BTC');
+  const navigate = useNavigate();
+  //navigate to either '/buy' or '/sell' based on the activeTab state
+  const handleNavigate = () => {
+    navigate(`/${activeTab}`);
+    console.log(activeTab);
+  }
+  console.log('activeTab :>> ', activeTab);
   return (
     <div className="container mx-auto my-16 px-4">
-      <h1 className="text-5xl font-bold text-center mb-12">
-        Merchant
-      </h1>
+      <h1 className="text-5xl font-bold text-center mb-12">Merchant</h1>
       <div className="flex justify-between items-center mb-8">
         <div className="btn-group">
           <button
@@ -49,7 +55,7 @@ const MerchantPage = () => {
       <div className="flex space-x-4 mb-8">
         <input
           type="text"
-          placeholder={activeTab === 'buy' ? "Enter amount to buy" : "Enter amount to sell"}
+          placeholder={activeTab === 'buy' ? 'Enter amount to buy' : 'Enter amount to sell'}
           className="input input-bordered flex-grow"
         />
         <select
@@ -76,7 +82,10 @@ const MerchantPage = () => {
                 <span className="text-lg font-semibold">{merchant.name}</span>
               </div>
               <span className="text-xl font-bold">
-                ₦{(activeTab === 'buy' ? merchant.amount : merchant.price).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                ₦{(activeTab === 'buy' ? merchant.amount : merchant.price).toLocaleString('en-NG', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </span>
             </div>
             <div className="mb-4">
@@ -92,7 +101,10 @@ const MerchantPage = () => {
                 <span>{merchant.completion}% Completion</span>
                 <span>{merchant.responseTime} mins Response</span>
               </div>
-              <button className="btn btn-primary btn-sm">
+              <button
+                className="btn btn-primary btn-sm"
+                onClick={handleNavigate}
+              >
                 {activeTab === 'buy' ? 'Buy' : 'Sell'}
               </button>
             </div>
@@ -100,7 +112,7 @@ const MerchantPage = () => {
         ))}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default MerchantPage
+export default MerchantPage;

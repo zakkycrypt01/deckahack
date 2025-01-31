@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react';
 import { FaChevronLeft, FaFilter, FaUser, FaSearch, FaSort } from 'react-icons/fa';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+
 
 const buyMerchantData = [
   { name: 'Crypto Buyer', rate: 20000000.00, volume: 0.012, min: 100000, max: 500000, trades: 150, completion: 98, responseTime: 5 },
@@ -105,6 +107,12 @@ const MerchantPage = () => {
     if (sortConfig.key !== key) return <FaSort />;
     if (sortConfig.direction === 'ascending') return <FaSort className="transform rotate-180" />;
     return <FaSort />;
+  };
+
+  const navigate = useNavigate();
+  const handleNavigate = () => {
+    navigate(`/${activeTab}`);
+    console.log(activeTab);
   };
 
   return (
@@ -309,7 +317,10 @@ const MerchantPage = () => {
                   <span>{merchant.completion}% Completion</span>
                   <span>{merchant.responseTime} mins Response</span>
                 </div>
-                <button className="btn btn-primary btn-sm">
+                <button 
+                  className="btn btn-primary btn-sm"
+                  onClick={handleNavigate}
+                >
                   {activeTab === 'buy' ? 'Buy' : 'Sell'}
                 </button>
               </div>

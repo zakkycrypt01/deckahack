@@ -21,7 +21,8 @@
     "@dfinity/ledger-icp": "^2.6.4",
     "@dfinity/principal": "^2.2.0",
     "@dfinity/use-auth-client": "^2.2.0",
-    "@dfinity/utils": "^2.7.1"
+    "@dfinity/utils": "^2.7.1",
+    "class-variance-authority": "^0.7.1"
   },
   "devDependencies": {
     "@dfinity/auth-client": "^2.2.0",

@@ -1,10 +1,10 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { IoArrowBack, IoChevronForward } from 'react-icons/io5';
-import { FaWifi } from 'react-icons/fa';
-import { BsBatteryHalf } from 'react-icons/bs';
+import { useWallet } from '../WalletContext';
 
 const BuyPage = () => {
+  const { principal, newAuthActor } = useWallet();
   const navigate = useNavigate();
   const handleBack = () => navigate(-1);
 
