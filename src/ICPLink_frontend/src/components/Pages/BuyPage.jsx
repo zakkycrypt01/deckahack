@@ -5,8 +5,26 @@ import { useWallet } from '../WalletContext';
 
 const BuyPage = () => {
   const { principal, newAuthActor } = useWallet();
+  const [formData, setFormData] = useState({
+    adId: '',
+    amount: '',
+  });
   const navigate = useNavigate();
   const handleBack = () => navigate(-1);
+
+  const handleBuy = async () => {
+    const orderData = {
+      adId: 1,
+      amount: formData.amount,
+    };
+    try {
+      const result = await newAuthActor.createOrder(formData);
+      console.log('Buy USDT result:', result);
+      navigate('/transaction-detail');
+    } catch (error) {
+      console.log('Buy USDT error:', error);
+    }
+  };
 
   return (
     <div className="bg-black text-white min-h-screen p-4 font-sans">
@@ -43,6 +61,7 @@ const BuyPage = () => {
         </div>
         <input
           type="text"
+          value={formData.amount}
           placeholder="Please enter amount"
           className="w-full bg-gray-800 p-2 rounded mb-2 text-white placeholder-gray-500"
         />

@@ -17,7 +17,7 @@ import BuyPage from './components/Pages/BuyPage';
 import TransactionDetails from './components/Pages/TransactinDetails';
 import SellPage from './components/Pages/SellPage';
 import TransactionPage from './components/Pages/TransactionPage';
-import AdDashboard from './components/Pages/ad-dashboard';
+import AdDashboard from './components/Pages/AdDashboard';
 
 function App() {
   return (

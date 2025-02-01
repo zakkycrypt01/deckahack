@@ -46,7 +46,7 @@ const SignUpPage = ({ onClose }) => {
     const newErrors = validateForm();
     if (Object.keys(newErrors).length === 0) {
       const updatedProfile = {
-        accountType: { Regular: null },
+        accountType: { Merchant: null },
         email: formData.email,
         name: formData.name,
         status: "Active",

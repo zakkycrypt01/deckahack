@@ -33,7 +33,7 @@ shared({ caller = initializer }) actor class() {
 
   type Ad = {
     id : Nat;
-    title : Text;
+    tittle : Text;
     description : Text;
     status : AdStatus;
     amount : Nat;
@@ -136,7 +136,7 @@ shared({ caller = initializer }) actor class() {
         } else {
           let newAd : Ad = {
             id = nextAdId;
-            title = title;
+            tittle = title;
             description = description;
             status = #Active;
             amount = amount;
@@ -163,7 +163,7 @@ shared({ caller = initializer }) actor class() {
           if (ad.id == adId) {
             {
               id = ad.id;
-              title = title;
+              tittle = title;
               description = description;
               status = ad.status;
               amount = amount;
@@ -188,7 +188,7 @@ shared({ caller = initializer }) actor class() {
           if (ad.id == adId) {
             {
               id = ad.id;
-              title = ad.title;
+              tittle = ad.tittle;
               description = ad.description;
               status = newStatus;
               amount = ad.amount;

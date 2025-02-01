@@ -1,119 +1,127 @@
-"use client"
-
-import { useState } from "react"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import * as z from "zod"
-import { Pencil, Plus, Trash2 } from "lucide-react"
-import { Button } from "../ui/button"
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "../ui/form"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
-import { Input } from "../ui/input"
-import { Textarea } from "../ui/textarea"
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table"
-import { Badge } from "../ui/badge"
-import type { Ad } from "./types/ad"
+import { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Button } from "../ui/button";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { Input } from "../ui/input";
+import { Textarea } from "../ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
+import { Badge } from "../ui/badge";
+import { useWallet } from '../WalletContext';
 
 const formSchema = z.object({
-  coinType: z.string({
+  tittle: z.string({
     required_error: "Please select a coin type.",
   }),
   description: z.string().min(10, {
     message: "Description must be at least 10 characters.",
   }),
-  unitPrice: z.string().regex(/^\d*\.?\d*$/, {
+  price: z.string().regex(/^\d*\.?\d*$/, {
     message: "Please enter a valid price.",
   }),
-  amountForSale: z.string().regex(/^\d*\.?\d*$/, {
+  amount: z.string().regex(/^\d*\.?\d*$/, {
     message: "Please enter a valid amount.",
   }),
-})
+});
 
 // Sample data - replace with your actual data fetching logic
-const sampleAds: Ad[] = [
+const sampleAds = [
   {
     id: "1",
-    coinType: "btc",
+    tittle: "btc",
     description: "Selling BTC at market rate",
-    unitPrice: "45000",
-    amountForSale: "0.5",
+    price: "45000",
+    amount: "0.5",
     status: "active",
     createdAt: "2024-01-31",
   },
   {
     id: "2",
-    coinType: "eth",
+    tittle: "eth",
     description: "ETH available for instant transfer",
-    unitPrice: "2500",
-    amountForSale: "2",
+    price: "2500",
+    amount: "2",
     status: "inactive",
     createdAt: "2024-01-30",
   },
-]
+];
 
-const AdDashboard = () =>  {
-  const [ads, setAds] = useState<Ad[]>(sampleAds)
-  const [selectedAd, setSelectedAd] = useState<Ad | null>(null)
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
+const AdDashboard = () => {
+  const [ads, setAds] = useState(sampleAds);
+  const [selectedAd, setSelectedAd] = useState(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const {newAuthActor} = useWallet();
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: selectedAd || {
-      coinType: "",
+      tittle: "",
       description: "",
-      unitPrice: "",
-      amountForSale: "",
+      price: "",
+      amount: "",
     },
-  })
+  });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  const onSubmit = async (values) => {
     if (selectedAd) {
       // Update existing ad
-      setAds(ads.map((ad) => (ad.id === selectedAd.id ? { ...ad, ...values } : ad)))
+      setAds(ads.map((ad) => (ad.id === selectedAd.id ? { ...ad, ...values } : ad)));
     } else {
       // Create new ad
-      const newAd: Ad = {
-        id: Math.random().toString(36).substr(2, 9),
-        ...values,
-        status: "active",
-        createdAt: new Date().toISOString().split("T")[0],
+      const Ad = {
+        title: values.tittle,
+        description: values.description,
+        amount: Number(values.amount),
+        price: Number(values.price),
+      };
+      console.log("Sending Ad to createAd function:", Ad);
+      try{
+        const newAd = await newAuthActor.createAd(Ad)
+        console.log('ad created sucessfully',Ad);
+        setAds([...ads, newAd]);
+      } catch(error) {
+        console.log(error);
       }
-      setAds([...ads, newAd])
+      console.log(values);
     }
-    setIsDialogOpen(false)
-    setSelectedAd(null)
-    form.reset()
+    setIsDialogOpen(false);
+    setSelectedAd(null);
+    form.reset();
+  };
+  
+
+  function handleEdit(ad) {
+    setSelectedAd(ad);
+    form.reset(ad);
+    setIsDialogOpen(true);
   }
 
-  function handleEdit(ad: Ad) {
-    setSelectedAd(ad)
-    form.reset(ad)
-    setIsDialogOpen(true)
-  }
-
-  function handleDelete(id: string) {
-    setAds(ads.filter((ad) => ad.id !== id))
+  function handleDelete(id) {
+    setAds(ads.filter((ad) => ad.id !== id));
   }
 
   function handleCreateNew() {
-    setSelectedAd(null)
+    setSelectedAd(null);
     form.reset({
-      coinType: "",
+      tittle: "",
       description: "",
-      unitPrice: "",
-      amountForSale: "",
-    })
-    setIsDialogOpen(true)
+      price: "",
+      amount: "",
+    });
+    setIsDialogOpen(true);
   }
 
-  const coinTypeLabels: Record<string, string> = {
+  const tittleLabels = {
     btc: "Bitcoin (BTC)",
     eth: "Ethereum (ETH)",
     usdt: "Tether (USDT)",
     icp: "Internet Computer (ICP)",
-  }
+  };
 
   return (
     <div className="min-h-screen bg-black p-4 md:p-6 lg:p-8">
@@ -127,15 +135,19 @@ const AdDashboard = () =>  {
                 Create New Ad
               </Button>
             </DialogTrigger>
-            <DialogContent className="bg-zinc-900 text-white border-zinc-800">
+            <DialogContent className="bg-zinc-900 text-white border-zinc-800" aria-describedby="dialog-description">
               <DialogHeader>
                 <DialogTitle className="text-emerald-400">{selectedAd ? "Update Ad" : "Create New Ad"}</DialogTitle>
               </DialogHeader>
+              {/* Add a description for the dialog */}
+              <p id="dialog-description" className="sr-only">
+                {selectedAd ? "Update an existing advertisement" : "Create a new advertisement"}
+              </p>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                   <FormField
                     control={form.control}
-                    name="coinType"
+                    name="tittle"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-white">Coin Type</FormLabel>
@@ -181,7 +193,7 @@ const AdDashboard = () =>  {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <FormField
                       control={form.control}
-                      name="unitPrice"
+                      name="price"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-white">Unit Price (USD)</FormLabel>
@@ -195,7 +207,7 @@ const AdDashboard = () =>  {
 
                     <FormField
                       control={form.control}
-                      name="amountForSale"
+                      name="amount"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-white">Amount for Sale</FormLabel>
@@ -232,10 +244,10 @@ const AdDashboard = () =>  {
             <TableBody>
               {ads.map((ad) => (
                 <TableRow key={ad.id} className="border-zinc-800">
-                  <TableCell className="text-white">{coinTypeLabels[ad.coinType]}</TableCell>
+                  <TableCell className="text-white">{tittleLabels[ad.tittle]}</TableCell>
                   <TableCell className="text-white">{ad.description}</TableCell>
-                  <TableCell className="text-white">${ad.unitPrice}</TableCell>
-                  <TableCell className="text-white">{ad.amountForSale}</TableCell>
+                  <TableCell className="text-white">${ad.price}</TableCell>
+                  <TableCell className="text-white">{ad.amount}</TableCell>
                   <TableCell>
                     <Badge
                       className={ad.status === "active" ? "bg-emerald-500" : "bg-zinc-700"}
@@ -267,7 +279,7 @@ const AdDashboard = () =>  {
         </CardContent>
       </Card>
     </div>
-  )
-}
+  );
+};
 
 export default AdDashboard;
